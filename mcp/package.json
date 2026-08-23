@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
-    "@supabase/supabase-js": "^2.105.4",
+    "@supabase/supabase-js": "^2.112.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260729.1",
-    "@types/node": "24.13.3",
-    "typescript": "~5.9.3",
-    "vitest": "^4.1.8"
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "@types/node": "26.2.0",
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.11"
   }
 }
