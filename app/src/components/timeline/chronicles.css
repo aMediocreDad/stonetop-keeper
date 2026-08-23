@@ -1,0 +1,1030 @@
+/* ─────────────────────────────────────────────────
+   Chroniques — roue chronologique (parchemin)
+   Tout est scopé sous .chronicles-root et mappé sur
+   les tokens de design de l'app (Encre & Pierre).
+   ───────────────────────────────────────────────── */
+
+.chronicles-root {
+  /* Mapping vers les tokens globaux de l'app */
+  --ink: var(--text-primary);
+  --ink-soft: var(--text-secondary);
+  --ink-faint: var(--text-muted);
+  --parchment: var(--bg-primary);
+  --parchment-light: var(--bg-card);
+  --parchment-dark: var(--bg-secondary);
+  --rule: var(--border-paper);
+
+  /* Accents saisonniers : définis dans index.css (:root) avec le reste de la
+     palette — consommés ici et par seasons.tsx. */
+
+  /* Polices : on réutilise celles de l'app (pas d'import externe) */
+  --wt-display: 'Playfair Display', Georgia, serif;
+  --wt-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  position: relative;
+}
+
+/* Sticky wheel container */
+.chronicles-root .wheel-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--parchment);
+  box-shadow: 0 18px 24px -18px rgba(42, 36, 28, 0.18);
+  padding-top: 0.85rem;
+  border-bottom: 1px solid var(--rule);
+  display: block;
+}
+
+/* Aller à l'année */
+.chronicles-root .jump-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.25rem 0.75rem 0.35rem;
+  min-height: 2.1rem;
+}
+
+/* ===== Marqueur « saison actuelle » (cluster dans la barre) ===== */
+.chronicles-root .current-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.chronicles-root .cluster-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.chronicles-root .cluster-mark svg,
+.chronicles-root .cluster-mark .stamp-icon { width: 16px; height: 16px; }
+.chronicles-root .cluster-mark:hover { transform: rotate(-8deg) scale(1.08); }
+.chronicles-root .cluster-mark:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.chronicles-root .cluster-now {
+  font-family: var(--wt-display);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ===== « Consigner une entrée » (CTA) ===== */
+.chronicles-root .record-btn {
+  font-family: var(--wt-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--parchment-light);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.35rem 0.95rem;
+  cursor: pointer;
+  transition: background-color 220ms ease, border-color 220ms ease;
+}
+.chronicles-root .record-btn:hover {
+  background: var(--accent-autumn);
+  border-color: var(--accent-autumn);
+}
+.chronicles-root .record-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.chronicles-root .jump-toggle {
+  font-family: var(--wt-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  transition: color 220ms ease;
+}
+.chronicles-root .jump-toggle:hover { color: var(--ink); }
+.chronicles-root .jump-input {
+  font-family: var(--wt-display);
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ink);
+  color: var(--ink);
+  width: 5rem;
+  text-align: center;
+  padding: 0.3rem 0.2rem;
+  outline: none;
+}
+.chronicles-root .jump-toggle:focus-visible,
+.chronicles-root .jump-input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .chronicles-root .cards-container { --radius: 420px !important; --rotation-step: 12deg !important; top: 32px !important; }
+  .chronicles-root .wheel-stage { height: 140px !important; }
+}
+
+/* ===== Wheel ===== */
+.chronicles-root .wheel-stage {
+  position: relative;
+  width: 100%;
+  height: 170px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.chronicles-root .cards-container {
+  --radius: 520px;
+  --items: 26;
+  --base-rotation: 0deg;
+  --rotation-step: 10deg;
+
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: calc(var(--radius) * 2);
+  height: calc(var(--radius) * 2);
+  transform: translateX(-50%) rotate(var(--base-rotation));
+  transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform-origin: 50% 50%;
+}
+
+@media (min-width: 768px) {
+  .chronicles-root .cards-container { --radius: 760px; --rotation-step: 8deg; top: 42px; }
+  .chronicles-root .wheel-stage { height: 200px; }
+}
+@media (min-width: 1280px) {
+  .chronicles-root .cards-container { --radius: 980px; --rotation-step: 6deg; top: 48px; }
+  .chronicles-root .wheel-stage { height: 230px; }
+}
+
+.chronicles-root .wheel-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+.chronicles-root .wheel-rim::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(138, 127, 108, 0.35);
+}
+
+.chronicles-root .cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.chronicles-root .cards li {
+  --i: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  height: 60px;
+  margin-left: -45px;
+  margin-top: -30px;
+  transform:
+    rotate(calc(var(--rotation-step) * var(--i)))
+    translateY(calc(-1 * var(--radius)));
+  transform-origin: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.chronicles-root .year-label {
+  font-family: var(--wt-display);
+  font-size: 1.1rem;
+  color: var(--ink-faint);
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border: none;
+  transform: rotate(calc(-1 * var(--rotation-step) * var(--i) - var(--base-rotation)));
+  transition: color 280ms ease, font-size 280ms ease, letter-spacing 280ms ease;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+  position: relative;
+  padding-top: 4px;
+}
+.chronicles-root .year-label::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 8px;
+  background: var(--ink-faint);
+  opacity: 0.55;
+}
+.chronicles-root .year-label:hover { color: var(--ink); }
+
+/* L'année sélectionnée est LE grand affichage de l'année (pas de doublon
+   sous la roue) : taille héroïque, encre pleine. */
+.chronicles-root .cards li.is-current .year-label {
+  color: var(--ink);
+  font-size: 2.25rem;
+  letter-spacing: 0.02em;
+  font-style: italic;
+}
+@media (min-width: 768px) {
+  .chronicles-root .cards li.is-current .year-label { font-size: 2.75rem; }
+}
+.chronicles-root .cards li.is-current .year-label::before {
+  height: 18px;
+  background: var(--ink);
+  opacity: 1;
+}
+.chronicles-root .cards li.is-near .year-label { color: var(--ink-soft); }
+
+/* « years ago » glissé sous le grand chiffre sélectionné : centré, voix
+   display, assez grand pour se lire comme un sous-titre de l'année. */
+.chronicles-root .year-caption {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0.25rem;
+  font-family: var(--wt-display);
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .chronicles-root .year-caption { font-size: 1.5rem; }
+}
+
+/* Center pointer / indicator */
+.chronicles-root .wheel-pointer {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.chronicles-root .wheel-pointer .needle { width: 1px; height: 10px; background: var(--ink); }
+.chronicles-root .wheel-pointer .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+  border-radius: 50%;
+  margin-top: -3px;
+}
+
+/* Ambient veil to fade left/right edges */
+.chronicles-root .wheel-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, var(--parchment) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 82%, var(--parchment) 100%);
+}
+
+/* Scroll hint — disparaît après la première interaction réussie avec la roue */
+.chronicles-root .scroll-hint {
+  text-align: center;
+  font-family: var(--wt-serif);
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  padding-bottom: 0.5rem;
+  transition: opacity 600ms ease;
+}
+.chronicles-root .scroll-hint.is-dismissed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===== Season sections ===== */
+.chronicles-root .seasons-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+  position: relative;
+}
+
+/* Tête des saisons : simple transition ornementale (l'année vit sur la roue). */
+.chronicles-root .seasons-head {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.chronicles-root .seasons-head .ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--ink-faint);
+}
+/* Filet « 2 pt » patiné du livre (Jason Lutes, CC BY 4.0), teinte currentColor.
+   `auto 100%` : le masque garde son échelle naturelle (on n'en voit que le
+   centre) — compressé sur 90px, la texture crénelait en pointillés. */
+.chronicles-root .seasons-head .ornament .line {
+  width: 90px;
+  height: 3px;
+  background-color: currentColor;
+  mask-image: url('../../assets/stonetop/rule-2.png');
+  mask-size: auto 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('../../assets/stonetop/rule-2.png');
+  -webkit-mask-size: auto 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+.chronicles-root .seasons-head .ornament .line:last-child {
+  transform: scaleX(-1);
+}
+
+/* Grille des saisons : 2 colonnes dès 768px, pile verticale sur mobile. */
+.chronicles-root .seasons-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .chronicles-root .seasons-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Carte « + saison » : même esthétique pointillée que les années fantômes. */
+.chronicles-root .season-add {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 1.1rem 1.5rem;
+  cursor: pointer;
+  color: var(--ink-faint);
+  text-align: left;
+  transition: border-color 220ms ease, color 220ms ease, background-color 220ms ease;
+}
+.chronicles-root .season-add:hover {
+  border-color: var(--ink-faint);
+  color: var(--ink);
+  background: rgba(244, 236, 216, 0.35);
+}
+.chronicles-root .season-add:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.chronicles-root .season-add .season-mark { opacity: 0.75; }
+.chronicles-root .season-add-label {
+  font-family: var(--wt-display);
+  font-style: italic;
+  font-size: 1.15rem;
+}
+
+.chronicles-root .season {
+  position: relative;
+  isolation: isolate;
+  /* alimente la frise ripple globale (.accent-ripple) avec la couleur de saison */
+  --card-accent: var(--season-color);
+  background: var(--parchment-light);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.5rem 1.5rem 1.5rem 2rem;
+  transition: transform 320ms ease, box-shadow 320ms ease, border-color 320ms ease;
+  overflow: hidden;
+}
+.chronicles-root .season:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px -18px rgba(42, 36, 28, 0.35);
+  border-color: var(--ink-faint);
+}
+
+.chronicles-root .season-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.chronicles-root .season-headings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+/* Surtitre saison quand l'entrée porte un titre propre. */
+.chronicles-root .season-overline {
+  font-family: var(--wt-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+}
+.chronicles-root .season-name {
+  font-family: var(--wt-display);
+  font-style: italic;
+  font-size: 1.85rem;
+  line-height: 1.05;
+  margin: 0;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.chronicles-root .season-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid currentColor;
+  flex-shrink: 0;
+  transition: transform 360ms ease;
+}
+.chronicles-root .season:hover .season-mark { transform: rotate(-8deg) scale(1.04); }
+
+.chronicles-root .season-body { position: relative; }
+
+/* Affordance d'édition : crayon estompé + liseré renforcé au survol, pour que
+   la carte se lise comme éditable avant même le clic. */
+.chronicles-root .season-edit-hint {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+.chronicles-root .season:hover .season-edit-hint,
+.chronicles-root .season:focus-within .season-edit-hint {
+  opacity: 0.85;
+}
+/* Ici la frise ripple murmure : les Chroniques sont une surface de lecture
+   longue où quatre teintes saisonnières cohabitent — à l'opacité globale
+   (0.42) elles se disputaient l'attention du lecteur. La saison reste dite
+   par le médaillon (.season-mark) ; la frise n'est plus qu'un filigrane. */
+.chronicles-root .season .accent-ripple { opacity: 0.2; }
+.chronicles-root .season:hover .accent-ripple { opacity: 0.08; }
+
+/* Rendu lecture seule du texte de saison (Tiptap bare, cliquable). */
+.chronicles-root .season-display { cursor: pointer; border-radius: 6px; }
+.chronicles-root .season-display .ProseMirror {
+  font-family: var(--wt-serif);
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--ink);
+  outline: none;
+  padding-bottom: 2.6rem; /* dégage le bouton Focus en bas à droite */
+}
+.chronicles-root .season-display .ProseMirror p { margin: 0 0 0.7em; }
+.chronicles-root .season-display .ProseMirror p:last-child { margin-bottom: 0; }
+.chronicles-root .season-display .ProseMirror ul,
+.chronicles-root .season-display .ProseMirror ol {
+  padding-left: 1.4rem;
+  margin: 0 0 0.7em;
+}
+.chronicles-root .season-display .ProseMirror ul { list-style: disc; }
+.chronicles-root .season-display .ProseMirror ol { list-style: decimal; }
+
+/* Strand MJ : continuation de la même carte, la couleur fait la séparation
+   (pas d'encadré) — visible du MJ uniquement, jamais rendu aux autres rôles. */
+/* Le padding-bas de 2.6rem du bloc de lecture ne sert qu'à dégager le bouton
+   Focus (absolu, en bas à droite). Quand le strand MJ suit, c'est LUI le
+   dernier bloc (il hérite du 2.6rem via .season-display) : le bloc partagé
+   colle alors au filet — sinon la carte se lirait comme deux boîtes. */
+.chronicles-root .season-display.has-gm-strand .ProseMirror { padding-bottom: 0; }
+.chronicles-root .season-gm {
+  color: var(--gm-accent);
+  margin-top: 0.5rem;
+}
+.chronicles-root .season-gm .ProseMirror { color: var(--gm-accent); }
+.chronicles-root .season-gm-rule {
+  display: block;
+  width: 3rem;
+  border-top: 1px dashed var(--gm-accent);
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+}
+
+/* Titres d'événements (« L'embuscade du Gwead »…) : voix display, posés. */
+.chronicles-root .season-display .ProseMirror h2,
+.chronicles-root .focus-editor .ProseMirror h2 {
+  font-family: var(--wt-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.1em 0 0.35em;
+  color: var(--ink);
+}
+.chronicles-root .season-display .ProseMirror h3,
+.chronicles-root .focus-editor .ProseMirror h3 {
+  font-family: var(--wt-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1em 0 0.3em;
+  color: var(--ink);
+}
+.chronicles-root .season-display .ProseMirror h2:first-child,
+.chronicles-root .focus-editor .ProseMirror h2:first-child,
+.chronicles-root .season-display .ProseMirror h3:first-child,
+.chronicles-root .focus-editor .ProseMirror h3:first-child { margin-top: 0; }
+
+.chronicles-root .season-focus-btn {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--parchment);
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  font-family: var(--wt-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, transform 220ms ease;
+}
+.chronicles-root .season-focus-btn:hover {
+  background: var(--ink);
+  color: var(--parchment-light);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+}
+.chronicles-root .season-focus-btn svg,
+.chronicles-root .season-focus-btn .stamp-icon { display: block; }
+
+@media (max-width: 640px) {
+  .chronicles-root .season { padding: 1.15rem 1rem 1.15rem 1.4rem; }
+  .chronicles-root .season-name { font-size: 1.5rem; }
+  .chronicles-root .season-mark { width: 30px; height: 30px; }
+  .chronicles-root .season-mark svg,
+  .chronicles-root .season-mark .stamp-icon { width: 22px; height: 22px; }
+  .chronicles-root .season-focus-btn { position: static; margin-top: 0.6rem; width: 100%; justify-content: center; }
+}
+
+/* ===== Focus modal ===== */
+.chronicles-root .focus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  /* Même encre que --scrim (28,22,14 — jamais de noir pur), alpha renforcé :
+     le mode focus d'écriture veut un voile plus profond qu'une modale. */
+  background: rgba(28, 22, 14, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: clamp(0.5rem, 3vw, 2rem);
+  animation: chr-focus-fade-in 220ms ease both;
+}
+@keyframes chr-focus-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.chronicles-root .focus-panel {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  background: var(--parchment);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: chr-focus-rise 360ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+/* La saison teinte le panneau comme elle teinte sa carte : la frise ripple
+   éclot du bord gauche (peinture partagée via .card-accent-left), en
+   filigrane — l'ancien filet plat de 4px en tête faisait très « accent de
+   template ». Le survol ne la fait pas respirer ici (le pointeur vit en
+   permanence sur le panneau pendant l'écriture). */
+.chronicles-root .focus-panel {
+  --card-accent: var(--season-color);
+}
+.chronicles-root .focus-panel::before,
+.chronicles-root .focus-panel:hover::before {
+  opacity: 0.16;
+}
+@keyframes chr-focus-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chronicles-root .focus-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.85rem;
+}
+/* Sous la tête, le filet patiné du livre (Jason Lutes, CC BY 4.0) à la place
+   du border plat — retrait latéral = padding de la tête, pour qu'il se lise
+   comme un trait de plume sur la page, pas comme un bord de boîte. */
+.chronicles-root .focus-head::after {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 0;
+  height: 3px;
+  background-color: var(--rule);
+  mask-image: url('../../assets/stonetop/rule-1.png');
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url('../../assets/stonetop/rule-1.png');
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+.chronicles-root .focus-head-left { display: flex; align-items: center; gap: 0.9rem; }
+.chronicles-root .focus-mark {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.4);
+}
+.chronicles-root .focus-mark svg,
+.chronicles-root .focus-mark .stamp-icon { width: 26px; height: 26px; }
+.chronicles-root .focus-title-block { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; flex: 1; }
+/* Ligne méta éditable : saison (select) · année (champ). */
+.chronicles-root .focus-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--wt-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+}
+.chronicles-root .focus-season,
+.chronicles-root .focus-year-input {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.1rem 0.15rem;
+  cursor: pointer;
+  transition: border-color 220ms ease, color 220ms ease;
+}
+.chronicles-root .focus-season:hover,
+.chronicles-root .focus-year-input:hover { border-color: var(--ink); color: var(--ink); }
+.chronicles-root .focus-year-input { width: 3.4rem; cursor: text; }
+.chronicles-root .focus-meta-sep { opacity: 0.55; }
+.chronicles-root .focus-meta-year { display: inline-flex; align-items: center; gap: 0.35rem; }
+.chronicles-root .focus-season:focus-visible,
+.chronicles-root .focus-year-input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+/* Titre de l'entrée : champ libre, voix display (remplace l'ancien <h2>). */
+.chronicles-root .focus-title-input {
+  font-family: var(--wt-display);
+  font-style: italic;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.05;
+  margin: 0;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 0 0 0.1rem;
+  width: 100%;
+  transition: border-color 220ms ease;
+}
+.chronicles-root .focus-title-input::placeholder { color: var(--ink-faint); font-style: italic; opacity: 0.75; }
+.chronicles-root .focus-title-input:hover { border-bottom-color: var(--rule); }
+.chronicles-root .focus-title-input:focus-visible { outline: none; border-bottom-color: var(--ink); }
+.chronicles-root .focus-close {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 220ms ease, color 220ms ease, transform 220ms ease;
+}
+.chronicles-root .focus-close:hover { background: var(--ink); color: var(--parchment-light); transform: rotate(90deg); }
+/* Éditeur plein écran (Tiptap bare). */
+.chronicles-root .focus-editor {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem;
+}
+.chronicles-root .focus-editor .ProseMirror {
+  min-height: 50vh;
+  outline: none;
+  font-family: var(--wt-serif);
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+  line-height: 1.75;
+  color: var(--ink);
+}
+.chronicles-root .focus-editor .ProseMirror ul,
+.chronicles-root .focus-editor .ProseMirror ol {
+  padding-left: 1.4rem;
+  margin: 0 0 0.7em;
+}
+.chronicles-root .focus-editor .ProseMirror ul { list-style: disc; }
+.chronicles-root .focus-editor .ProseMirror ol { list-style: decimal; }
+
+/* Second éditeur, strand MJ : séparé du partagé par un filet pointillé teinté
+   MJ (même langage visuel que la carte de lecture), pas un second panneau. */
+.chronicles-root .focus-gm-strand {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--gm-accent);
+}
+.chronicles-root .focus-gm-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.chronicles-root .focus-gm-head h3 {
+  font-family: var(--wt-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  margin: 0;
+  color: var(--gm-accent);
+}
+.chronicles-root .focus-gm-hint {
+  font-family: var(--wt-serif);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  margin: 0 0 0.75rem;
+}
+.chronicles-root .focus-gm-editor .ProseMirror {
+  min-height: 20vh;
+  outline: none;
+  font-family: var(--wt-serif);
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--gm-accent);
+}
+.chronicles-root .focus-gm-editor .ProseMirror ul,
+.chronicles-root .focus-gm-editor .ProseMirror ol {
+  padding-left: 1.4rem;
+  margin: 0 0 0.7em;
+}
+.chronicles-root .focus-gm-editor .ProseMirror ul { list-style: disc; }
+.chronicles-root .focus-gm-editor .ProseMirror ol { list-style: decimal; }
+
+/* Placeholder Tiptap (extension Placeholder). */
+.chronicles-root .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--ink-faint);
+  font-style: italic;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.chronicles-root .focus-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.5rem 0.85rem;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+.chronicles-root .focus-hint {
+  font-family: var(--wt-serif);
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .chronicles-root .focus-overlay { padding: 0; }
+  .chronicles-root .focus-panel { border-radius: 0; max-height: 100dvh; }
+  .chronicles-root .focus-editor { padding: 1.1rem 1.2rem; }
+  .chronicles-root .focus-title-input { font-size: 1.6rem; }
+  .chronicles-root .focus-mark { width: 38px; height: 38px; }
+  .chronicles-root .focus-mark svg,
+  .chronicles-root .focus-mark .stamp-icon { width: 22px; height: 22px; }
+}
+
+/* Subtle hint when scrolling */
+.chronicles-root .is-scrolling .cards-container { transition-duration: 240ms; }
+
+/* ─────────────────────────────────────────────────
+   Annales — lecture chronologique continue.
+   Porte aussi .chronicles-root : les cartes .season
+   et le bouton .record-btn sont réutilisés tels quels.
+   ───────────────────────────────────────────────── */
+.annals-root {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+.annals-root .annals-year { margin-bottom: 2.75rem; }
+.annals-root .annals-year-head {
+  position: relative;
+  margin: 0 0 1rem;
+  padding-bottom: 0.55rem;
+  font-family: var(--wt-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* Rond de chapitre du livre en puce d'année (Jason Lutes, CC BY 4.0). */
+.annals-root .annals-year-head::before {
+  content: '';
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-right: 0.55rem;
+  vertical-align: -0.12em;
+  background-color: var(--ink);
+  mask-image: url('../../assets/stonetop/chapter-circle.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('../../assets/stonetop/chapter-circle.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+/* Souligné : filet patiné à la place du border-bottom plat. */
+.annals-root .annals-year-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background-color: var(--rule);
+  mask-image: url('../../assets/stonetop/rule-1.png');
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url('../../assets/stonetop/rule-1.png');
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+.annals-root .annals-seasons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.annals-root .annals-entry { position: relative; }
+
+/* Sceau « saison actuelle » : posé sur l'angle de la carte concernée. */
+.annals-root .annals-current-seal {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--parchment-light);
+  border: 1px solid currentColor;
+  pointer-events: none;
+}
+.annals-root .annals-current-seal svg,
+.annals-root .annals-current-seal .stamp-icon { width: 18px; height: 18px; }
+
+.annals-root .annals-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-family: var(--wt-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+/* --- Présence : un pair écrit dans cette saison (discret, jamais urgent) --- */
+.chronicles-root .season-presence,
+.chronicles-root .focus-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+.chronicles-root .season-presence {
+  margin-left: auto;
+  padding-left: 0.5rem;
+  flex-shrink: 0;
+}
+.chronicles-root .focus-presence {
+  margin-right: auto;
+}
+.chronicles-root .season-presence.is-gm,
+.chronicles-root .focus-presence.is-gm {
+  color: var(--gm-accent);
+}
+
+/* --- Conflit d'édition : encre pleine, jamais d'alarme rouge --- */
+.chronicles-root .focus-conflict {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--rule);
+  background: var(--bg-card-alt);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.chronicles-root .focus-conflict-text {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink);
+}
+.chronicles-root .focus-conflict-theirs {
+  border-left: 2px solid var(--rule);
+  padding-left: 0.75rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+.chronicles-root .focus-conflict-title {
+  margin: 0.15rem 0;
+  font-weight: 600;
+}
+.chronicles-root .focus-conflict-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ------------------------------------------------------------
+   Pointeurs grossiers : les commandes de la roue passaient sous le seuil
+   tactile (record 28px, jump 22px, cluster 26px, year-label nu). Même
+   logique que le bloc coarse d'index.css — la densité souris reste intacte.
+   ------------------------------------------------------------ */
+@media (pointer: coarse) {
+  .chronicles-root .record-btn {
+    padding: 0.65rem 1.1rem;
+  }
+  .chronicles-root .jump-toggle {
+    padding: 0.6rem 0.8rem;
+  }
+  .chronicles-root .cluster-mark {
+    width: 40px;
+    height: 40px;
+  }
+  .chronicles-root .year-label {
+    padding: 10px 8px;
+  }
+  .chronicles-root .focus-close {
+    width: 44px;
+    height: 44px;
+  }
+}

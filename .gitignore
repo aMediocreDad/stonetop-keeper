@@ -1,0 +1,34 @@
+# =====================================================================
+# Repo-level .gitignore
+# app/.gitignore covers the app's node_modules, dist and .env.local;
+# supabase/.gitignore covers the local stack's .branches / .temp.
+# =====================================================================
+
+# Private / internal docs — never push to GitHub. The Playbook guard is
+# deliberate: the Stonetop books must never land in the tree.
+tech-spec.md
+Playbook.pdf
+app/README.md
+app/info.md
+
+# Wrangler local secrets for `wrangler dev` — the Supabase anon key, the GM
+# password and MCP_SECRET. Never commit.
+.dev.vars
+.dev.vars.*
+
+# Wrangler local state / build cache
+.wrangler/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Safety net (also covered by app/.gitignore)
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+.superpowers/

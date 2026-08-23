@@ -1,0 +1,15 @@
+# Normalize line endings to LF. Upstream (Zephyr-jdr) sometimes commits CRLF
+# (e.g. 68eead9 flipped many files to CRLF); without this, restacking our LF
+# branches onto upstream produces whole-file line-ending conflicts.
+* text=auto eol=lf
+
+# Binary assets — never touch.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary

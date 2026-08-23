@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stonetop-keeper",
+  "compatibility_date": "2026-07-07",
+
+  // The SPA is still served straight from assets — its backend is Supabase,
+  // called directly from the browser. `main` exists only for the read-only
+  // campaign MCP server, which `run_worker_first` scopes to /mcp and /mcp/*;
+  // every other path follows the default asset-first path and never reaches the
+  // Worker. The Worker holds no campaign credential: callers present their own
+  // space token as a bearer, so one endpoint serves every space.
+  //
+  // Both patterns are listed on purpose: the endpoint is the bare /mcp, and the
+  // Wrangler reference does not state whether a lone "/mcp*" matches it as well
+  // as the subtree. A wrong guess here cannot fail a test — the suite calls
+  // worker.fetch directly — it only fails at deploy, as the SPA answering /mcp
+  // with index.html.
+  "main": "./mcp/src/index.ts",
+
+  "assets": {
+    "directory": "./app/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/mcp", "/mcp/*"]
+  },
+
+  // Serve only on the custom domain, not <name>.workers.dev.
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "stonetop.amediocre.dad", "custom_domain": true }
+  ]
+}

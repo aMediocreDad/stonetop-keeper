@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Ink &amp; Stone — a wiki for your Stonetop campaign</title>
+    <meta
+      name="description"
+      content="A living wiki for your Stonetop game — the folk, places, and turning seasons of your campaign, kept together and shared with your whole table. No account needed."
+    />
+
+    <!-- Personal instance: nice link previews for sharing with the table,
+         but kept out of search engines. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- = --bg-primary-flat (index.css) : le papier tel qu'il est peint, grain
+         composité, et non le token --bg-primary nu — celui-ci laissait la barre
+         d'état iOS ~6/255 plus claire que la page. Ni ce meta ni le manifest
+         (pwaManifest.ts) ne peuvent lire var() : trois copies à retoucher
+         ensemble, le token restant la référence. -->
+    <meta name="theme-color" content="#E6E0D5" />
+    <link rel="canonical" href="https://stonetop.amediocre.dad/" />
+
+    <!-- Open Graph (link previews in Discord / iMessage / Slack). As a client
+         SPA these are the only meta social scrapers see, so they are English. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ink & Stone" />
+    <meta property="og:title" content="Ink & Stone — a wiki for your Stonetop campaign" />
+    <meta
+      property="og:description"
+      content="A living wiki for your Stonetop game — the folk, places, and turning seasons of your campaign, shared with your whole table. No account needed."
+    />
+    <meta property="og:url" content="https://stonetop.amediocre.dad/" />
+    <meta property="og:image" content="https://stonetop.amediocre.dad/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ink & Stone — a wiki for your Stonetop campaign" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ink & Stone — a wiki for your Stonetop campaign" />
+    <meta
+      name="twitter:description"
+      content="A living wiki for your Stonetop game — the folk, places, and turning seasons of your campaign, shared with your whole table."
+    />
+    <meta name="twitter:image" content="https://stonetop.amediocre.dad/og-image.png" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- The web app manifest link is injected by vite-plugin-pwa at build
+         time; do not add one here. A hand-written copy duplicates it in
+         production and, in dev, points at a file the plugin never generates —
+         Vite's SPA fallback then answers with this very file, and the browser
+         reports "Manifest: Line: 1, column: 1, Syntax error." -->
+    <!-- Type is self-hosted (see src/fonts.css). It used to come from the
+         Google CDN, which cost two preconnects and a render-blocking
+         stylesheet on every cold load, and left the parchment identity broken
+         with no connection. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/source-serif-4-400-normal-latin.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/playfair-display-400-normal-latin.woff2"
+      crossorigin
+    />
+    <!-- Alegreya Sans est la voix « chrome UI » — boutons, champs, libellés :
+         la police la plus visible au premier rendu. La liste de preload
+         datait de l'époque Inter et ne l'avait jamais reçue. 400 = texte
+         d'interface, 500 = boutons (.btn-ink/.btn-outline, font-weight 500). -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/alegreya-sans-400-normal-latin.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/alegreya-sans-500-normal-latin.woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

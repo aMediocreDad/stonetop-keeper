@@ -1,0 +1,909 @@
+/* Must precede Tailwind's base layer so @font-face declarations are
+   registered before anything references the families. */
+@import './fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   Encre & Pierre — Design System
+   Inspiration : papier ancien, encre noire, tampons grunge.
+   ===================================================================== */
+
+@layer base {
+  :root {
+    /* Palette principale (cf. UI design.png) */
+    --bg-primary: #EBE5DA;        /* Papier vieilli — fond global */
+    /* --bg-primary tel qu'il est RÉELLEMENT peint, une fois composité avec le
+       grain de `body::before` (noir à 0.04 d'alpha sur un bruit fractal, soit
+       ≈ 0.02 en moyenne). À utiliser partout où la couche de grain ne peut pas
+       porter la texture et où une couleur plate doit malgré tout se raccorder
+       au papier : le fond du canvas (cf. `body`), et les copies en dur du
+       meta theme-color (index.html) et du manifest (pwaManifest.ts). Servir
+       --bg-primary nu à ces endroits produit un raccord visible ~6/255 trop
+       clair. */
+    --bg-primary-flat: #E6E0D5;
+    --bg-secondary: #E0D8CA;      /* Papier texturé — sections */
+    --bg-card: #F7F2E8;           /* Carte papier */
+    --bg-card-alt: #F0EADD;       /* Variante de carte plus chaude */
+
+    --text-primary: #1B1B1B;      /* Encre noire */
+    --text-secondary: #4A4A4A;    /* Encre adoucie */
+    --text-muted: #6E655A;        /* Texte secondaire / labels (AA sur parchemin) */
+    --text-faint: #8C8279;        /* Encre estompée — décor uniquement, jamais de texte porteur */
+    --text-inverse: #F7F2E8;      /* Texte sur fond noir (papier clair) */
+
+    --border-subtle: #D6CFC4;     /* Filets fins — décor, jamais une limite de champ */
+    --border-paper: #C9C0B1;      /* Filets plus marqués (cadres décoratifs) */
+    /* Limite de CHAMP DE SAISIE : le filet est la seule chose qui délimite un
+       champ (le fond papier se confond avec la surface derrière), et
+       --border-paper n'y tenait que 1,61:1 — WCAG 1.4.11 demande 3:1 pour le
+       non-texte porteur. #857C6F ≈ 3,5:1 sur --bg-card, ≈ 3,1:1 sur
+       --bg-primary. Encre estompée, même famille que --text-faint. */
+    --border-field: #857C6F;
+    --border-focus: #1B1B1B;      /* Focus / hover */
+
+    --accent-primary: #1B1B1B;    /* Encre noire (boutons, type PJ) */
+    --accent-hover: #000000;      /* Encre profonde */
+
+    --tag-bg: #EBE5DA;
+    --tag-text: #5A5A5A;
+
+    --ink-dot: #1B1B1B;
+    --paper-shadow: rgba(28, 22, 14, 0.08);
+
+    --graph-label: #2C2C2C;        /* Libellés canvas (Sigma) */
+    --graph-node-default: #9C9385; /* Nœud sans lieu */
+    --graph-edge-default: #999088; /* Arête par défaut */
+    /* Liseré doré des PJ — SEUL marqueur distinguant un PJ d'un PNJ sur le
+       graphe : l'ancien #D4A84B tombait à 1,84:1 sur le remplissage des
+       nœuds (3:1 requis, WCAG 1.4.11). Or antique ≈ 3,1:1, toujours or. */
+    --graph-accent-pc: #A87C24;
+    --graph-accent-group: #8C8279; /* Liseré des groupes sans membre */
+
+    /* Teinte des PJ HORS graphe (tampon de livret sur une carte du grimoire).
+       Distincte de --graph-accent-pc à dessein : l'or antique du graphe est
+       calibré pour tenir 3:1 sur le REMPLISSAGE d'un nœud, et posé sur du
+       parchemin il lit comme du métal — décoratif, ce que le principe 3
+       interdit. Cet ocre est le même or passé à l'encre : plus sombre, plus
+       brun, il appartient à la famille des accents (prune, rouge) au lieu de
+       briller à côté d'elle. ≈6,1:1 sur --bg-card.
+       Même valeur que --warning, et c'est voulu — mais on ne réutilise PAS ce
+       jeton-là : « avertissement » et « personnage joueur » n'ont rien à voir,
+       et un nom qui ment survit toujours à la raison qui l'a fait mentir. */
+    --pc-accent: #7A5410;
+
+    --gm-accent: #6b4d7a;        /* plum — GM-only tint */
+    --gm-accent-soft: #6b4d7a1a; /* 10% wash for card backgrounds */
+    /* Prune éclairci pour les surfaces d'encre (tampons de relation) : le
+       prune nominal y tombe à ~2,2:1, illisible. Celui-ci tient ≈6:1 sur
+       #1B1B1B, avec son propre lavis clair. */
+    --gm-accent-ink: #C3A5D4;
+    --gm-accent-ink-soft: rgba(195, 165, 212, 0.14);
+
+    /* Danger / avertissement — sous-palette dérivée des rouges/ocres parchemin,
+       jamais les rouges Tailwind bruts. Contrastes vérifiés AA sur fond papier. */
+    --danger: #9B2C20;           /* rouge encre — texte/icônes destructifs (≈6.8:1) */
+    --danger-strong: #7F2318;    /* survol du bouton destructif */
+    --danger-soft: #F2E2DC;      /* fond d'un panneau d'avertissement rouge */
+    --danger-border: #D9B7AE;    /* filet du panneau rouge */
+
+    --warning: #7A5410;          /* ocre encre — texte d'avertissement (≈6.1:1) */
+    --warning-soft: #F0E4C8;     /* fond d'un panneau d'avertissement doré */
+    --warning-border: #D9BE86;   /* filet doré */
+
+    --scrim: rgba(28, 22, 14, 0.34); /* voile des modales — encre, pas noir pur */
+
+    /* Accents saisonniers (chroniques, sceaux de saison). Promus ici depuis
+       chronicles.css : quatre teintes saturées définies à dix lignes d'un
+       bloc qui aliasait soigneusement tout le reste vers les tokens globaux —
+       et dont tout consommateur hors de .chronicles-root aurait hérité du
+       vide. Ce sont les seules couleurs saturées légitimes hors sémantique
+       PJ-or / MJ-prune / danger. */
+    --accent-spring: #6f8a5e;
+    --accent-summer: #c08a3b;
+    --accent-autumn: #a84a2a;
+    --accent-winter: #4a6b80;
+
+    /* shadcn/ui — overrides cohérents */
+    --background: 38 26% 89%;
+    --foreground: 0 0% 11%;
+    --card: 38 32% 94%;
+    --card-foreground: 0 0% 11%;
+    --popover: 38 32% 94%;
+    --popover-foreground: 0 0% 11%;
+    --primary: 0 0% 11%;
+    --primary-foreground: 38 32% 94%;
+    --secondary: 37 18% 83%;
+    --secondary-foreground: 0 0% 11%;
+    --muted: 37 18% 83%;
+    --muted-foreground: 33 10% 39%;
+    --accent: 37 18% 83%;
+    --accent-foreground: 0 0% 11%;
+    --destructive: 0 50% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 33 16% 80%;
+    --input: 33 16% 80%;
+    --ring: 0 0% 11%;
+    --radius: 0.5rem;
+  }
+
+  * { @apply border-border; }
+
+  /* Anneau de focus unifié, même langage que les anneaux des chroniques :
+     trait d'encre net, décollé de l'élément. Les contrôles à focus dédié
+     (champs .field-paper, boutons shadcn) conservent le leur — leurs règles,
+     déclarées hors de la couche base, l'emportent. .ProseMirror est en
+     outline:none : son indicateur est porté par le focus-within du cadre
+     de TiptapEditor (bordure encre + halo, même langage que .field-paper) ;
+     l'éditeur `bare` de la modale de saison reste sans anneau propre — le
+     panneau plein écran est à lui seul le contexte de focus. */
+  :focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+
+  html, body, #root {
+    min-height: 100%;
+  }
+
+  /* Gouttière de barre de défilement toujours réservée : sans elle, filtrer par
+     type ou par lieu fait passer la page sous puis au-dessus du seuil de
+     débordement, la barre apparaît/disparaît et tout le contenu se décale
+     latéralement à chaque changement d'onglet. Là où les barres sont en
+     surimpression (macOS par défaut), la gouttière vaut 0 et rien ne change. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    /* Voix « lecture » : sérif partout par défaut (récits, descriptions).
+       Le chrome UI (boutons, champs, libellés) repasse en Alegreya Sans via
+       ses propres classes — deux voix distinctes : lire vs manipuler. */
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Se propage au canvas, donc peint tout ce que la couche de grain fixe
+       ci-dessous ne couvre PAS : la bande de safe-area d'iOS pendant le
+       défilement (PWA standalone, viewport-fit=cover) et le rebond
+       d'overscroll. Avec --bg-primary nu, cette bande sortait plate et sans
+       grain, ~6/255 plus claire que le papier peint juste en dessous — le
+       « haut de page d'une autre couleur ». La valeur compositée s'y raccorde. */
+    background-color: var(--bg-primary-flat);
+  }
+
+  /* Texture papier (dégradés + grain) portée par une couche fixe promue en
+     couche de composition (translateZ) plutôt que par background-attachment:
+     fixed — on garde l'aspect « fond figé » sans le repaint à chaque scroll
+     que celui-ci provoquait (jank Safari/mobile). */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--bg-primary);
+    background-image:
+      radial-gradient(circle at 18% 24%, rgba(160, 140, 100, 0.08) 0, transparent 40%),
+      radial-gradient(circle at 82% 70%, rgba(120, 100, 70, 0.07) 0, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    transform: translateZ(0);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--text-primary);
+  }
+}
+
+/* =====================================================================
+   Typographie & utilitaires
+   ===================================================================== */
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .font-body {
+    font-family: 'Alegreya Sans', system-ui, -apple-system, sans-serif;
+  }
+  /* Voix lecture explicite (longs textes : notes, chroniques, descriptions) */
+  .font-reading {
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+
+  .label-overline {
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--text-muted);
+  }
+
+  /* Lien d'évitement : masqué jusqu'au focus clavier, puis une petite carte
+     papier posée au-dessus du header.
+
+     Le masquage est au niveau du PAINT (boîte de 1px découpée au clip-path,
+     technique « sr-only ») et non plus un `transform: translateY(-100%)` qui
+     le sortait de l'écran. Un élément `position: fixed` transformé est promu
+     en calque composité : pendant le défilement inertiel d'iOS ce calque est
+     réutilisé sans que la transform soit systématiquement réappliquée, et le
+     lien réapparaissait en pleine page au scroll. Une découpe au paint ne peut
+     pas être « oubliée » par le compositeur. L'élément reste focusable — ni
+     `display:none` ni `visibility:hidden`, qui le retireraient de l'ordre de
+     tabulation et supprimeraient le seul raccourci clavier vers le contenu.
+
+     Le décor (fond, filet, ombre) ne vit que dans l'état focalisé : au repos
+     il n'y a aucune boîte à peindre, donc rien à laisser fuir. */
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 200;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .skip-link:focus-visible {
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    overflow: visible;
+    clip-path: none;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-paper);
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 8px var(--paper-shadow);
+  }
+
+  /* Fond papier réutilisable */
+  .bg-parchment {
+    background-color: var(--bg-primary);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(160, 140, 100, 0.08), transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(120, 100, 70, 0.07), transparent 50%);
+  }
+
+  .bg-paper-card {
+    background-color: var(--bg-card);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .text-ink {
+    color: var(--text-primary);
+  }
+
+  /* Séparateur horizontal style "trait avec sceau au milieu" */
+  .seal-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-muted);
+  }
+  .seal-divider::before,
+  .seal-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      var(--border-paper) 30%,
+      var(--border-paper) 70%,
+      transparent 100%
+    );
+  }
+
+  /* Frise de nœuds « Book II » (tête de page du livre, Jason Lutes,
+     CC BY 4.0) — masque alpha répété, teinte currentColor. */
+  .band-knot {
+    height: 12px;
+    background-color: currentColor;
+    mask-image: url('./assets/stonetop/band-knot.png');
+    mask-size: auto 100%;
+    mask-repeat: repeat-x;
+    mask-position: center;
+    -webkit-mask-image: url('./assets/stonetop/band-knot.png');
+    -webkit-mask-size: auto 100%;
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-position: center;
+  }
+}
+
+/* =====================================================================
+   Composants — boutons grunge / cartes encre
+   ===================================================================== */
+@layer components {
+  /* Pictogramme « tampon » Stonetop (StampIcon) : le PNG est un masque
+     alpha, le fond currentColor donne la teinte — se colore comme un SVG.
+     28px par défaut (même contrat que les anciens SVG inline) ; les
+     consommateurs redimensionnent par sélecteur ou via la prop `size`. */
+  .stamp-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+  }
+
+  /* Logo « tampon » Ink & Stone : même mécanique d'encre que .stamp-icon /
+     .band-knot — le PNG sert de masque alpha, la teinte vient de currentColor
+     (encre #1B1B1B). Le logo vit ainsi dans la même couche d'encre que le
+     reste du système, au lieu d'un PNG noir plat (#000) posé sur le papier :
+     plus doux, cohérent, moins « autocollant ». La taille est pilotée par le
+     consommateur (Logo.tsx, classes responsive). */
+  .logo-mark {
+    display: inline-block;
+    flex-shrink: 0;
+    color: var(--text-primary);
+    background-color: currentColor;
+    mask-image: url('/logo.png');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url('/logo.png');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+  }
+
+  /* Bouton noir avec léger grain (look "tampon encre") */
+  .btn-ink {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-inverse);
+    background-color: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    border-radius: 0.55rem;
+    cursor: pointer;
+    transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='1 0 0 0 0.06  0 1 0 0 0.06  0 0 1 0 0.06  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-blend-mode: screen;
+    /* Ombres à base d'encre (28,22,14) partout — jamais de noir pur : trois
+       bases d'ombre différentes pour un même concept d'élévation, c'était
+       une dérive. */
+    box-shadow: 0 1px 0 rgba(28, 22, 14, 0.6) inset, 0 4px 14px var(--paper-shadow);
+  }
+  .btn-ink:hover {
+    transform: translateY(-1px);
+    background-color: var(--accent-hover);
+    box-shadow: 0 1px 0 rgba(28, 22, 14, 0.6) inset, 0 6px 18px rgba(28, 22, 14, 0.18);
+  }
+  .btn-ink:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Bouton secondaire (contour) */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background-color: transparent;
+    border: 1px solid var(--text-primary);
+    border-radius: 0.55rem;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+  .btn-outline:hover {
+    background-color: rgba(28, 22, 14, 0.05);
+    transform: translateY(-1px);
+  }
+
+  /* Bouton texte */
+  .btn-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .btn-text:hover { opacity: 0.7; }
+
+  /* Carte papier classique */
+  .card-paper {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-paper);
+    border-radius: 0.75rem;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 8px 24px -12px var(--paper-shadow);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* Papier MJ OPAQUE. Les cartes MJ posent --gm-accent-soft (prune à 10 %)
+     en fond direct : au-dessus de la page, la transparence retombe sur le
+     papier et le lavis est juste. Au-dessus du VOILE d'une modale, elle
+     laisse voir la page au travers — la modale devient un fantôme. On cuit
+     donc le même lavis en couleur opaque, ce qui laisse aussi le grain de
+     .card-paper (son background-image) intact. */
+  .bg-paper-gm {
+    background-color: color-mix(in srgb, var(--gm-accent) 10%, var(--bg-card));
+  }
+
+  /* Accent gauche des cartes : le filet plat devient ornement — une frise de
+     cercles concentriques (ripple / anneaux de bois, motif fourni) teintée par
+     --card-accent qui « éclot » depuis le milieu du bord gauche et se fond dans
+     toutes les directions (dégradé RADIAL). Le dégradé porte la couleur ET le
+     fondu ; le SVG (formes opaques sur fond transparent) est un masque alpha
+     unique — même mécanique que .band-knot, sans mask-composite (fragile
+     inter-moteurs). Le SVG est doublé en miroir vertical (viewBox 2000×4000 =
+     motif + reflet) : le bord haut rejoint son reflet, donc `repeat-y` raccorde
+     sans couture (circles.svg n'est pas raccordable seul).
+     Deux porteurs partagent la même peinture : ::before (cartes sans ::before
+     propre) et .accent-ripple (élément dédié, pour .relation-stamp qui a déjà
+     son ::before). Rendu sous le texte (z-index:-1) ; isolation:isolate ancre
+     ce -1 au-dessus du fond de la carte, même pendant l'anim framer-motion. */
+  .card-accent-left::before,
+  .accent-ripple {
+    pointer-events: none;
+    /* Deux réglages INDÉPENDANTS, et les confondre était mon erreur :
+         · mask-size = la TAILLE des anneaux. Fixe à 200px, partout. C'est
+           l'échelle du motif ; l'agrandir ne couvre pas plus, ça grossit le
+           dessin — la frise cesse d'être une frise et devient trois cercles.
+         · --ripple-span = jusqu'où la peinture PORTE (le rayon du dégradé).
+           C'est ça, et seulement ça, qui décide de la couverture.
+       Le masque se répète donc en x ET en y (`repeat`) : les anneaux gardent
+       leur taille et se propagent aussi loin que le dégradé les éclaire. La
+       tuile est doublée en miroir VERTICAL, donc y raccorde sans couture.
+       En x, elle ne l'est PAS : il y a bel et bien une couture tous les 200px,
+       où des arcs se coupent net. Vérifié — carte à 355px, texte masqué, rendu
+       à 3× : elle est nette à x=200. Elle ne l'est pas en usage (0,2 d'opacité,
+       le grain du papier, et du texte par-dessus), donc on la garde ; mais ce
+       commentaire ne prétend pas qu'elle n'existe pas.
+       Si elle finit par se voir, deux remèdes, dans cet ordre de coût :
+         1. baisser --ripple-span : à 260px le dégradé n'est plus qu'à ~23% en
+            x=200 au lieu de ~52%, la couture s'éteint avec lui ;
+         2. doubler la tuile en miroir HORIZONTAL comme elle l'est déjà en
+            vertical (viewBox 4000×4000, mask-size 400px pour garder l'échelle
+            des anneaux). Correct, mais ~160k d'asset en plus.
+       Défaut de --ripple-span : 170px, la portée d'origine. Seule la carte du
+       grimoire l'élargit (cf. CharacterCard) — les autres porteurs
+       (tampons de relation, champs de saison) sont bien plus petits et n'ont
+       rien à couvrir de plus. */
+    background-image: radial-gradient(
+      var(--ripple-span, 170px) 85% at left center,
+      var(--card-accent, transparent) 0,
+      var(--card-accent, transparent) 10px,
+      transparent 100%
+    );
+    mask: url('./assets/ripple-accent.svg') left top / 200px auto repeat;
+    mask-mode: alpha;
+    -webkit-mask: url('./assets/ripple-accent.svg') left top / 200px auto repeat;
+    -webkit-mask-mode: alpha;
+    /* 0.42 au repos et 0.12 au survol, c'était l'inverse du besoin : la
+       lecture est le mode dominant de ces cartes, le survol arrive quand on
+       a DÉJÀ trouvé la bonne. L'ornement tournait donc à pleine encre
+       pendant la tâche et s'effaçait pendant l'interaction. */
+    opacity: 0.2;
+    transition: opacity 0.2s ease;
+  }
+  .card-accent-left {
+    position: relative;
+    isolation: isolate;
+  }
+  .card-accent-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+  }
+  /* Porteur autonome, là où un ::before est déjà pris. Le parent doit être
+     positionné et isolé (ex. .relation-stamp l'est déjà). */
+  .accent-ripple {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+  }
+  /* Au survol d'une carte, la frise s'efface presque — elle cède le pas au
+     contenu et à l'état de survol (transition portée par la règle partagée). */
+  .card-accent-left:hover::before,
+  .relation-stamp:hover .accent-ripple {
+    opacity: 0.12;
+  }
+
+  /* Carte avec coins coupés (style "grand cadre") */
+  .card-paper-clipped {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-paper);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 8px 24px -12px var(--paper-shadow);
+    clip-path: polygon(
+      14px 0, calc(100% - 14px) 0, 100% 14px,
+      100% calc(100% - 14px), calc(100% - 14px) 100%,
+      14px 100%, 0 calc(100% - 14px), 0 14px
+    );
+  }
+
+  /* Cadres officiels en 9 tranches (Jason Lutes, CC BY 4.0), posés en
+     surcouche ::before par-dessus une .card-paper. Couleur cuite dans le
+     PNG (--gm-accent) : border-image affiche le RGB du fichier tel quel,
+     et mask-border n'est pas interopérable (pas de teinte currentColor). */
+  .card-frame {
+    position: relative;
+    border-color: transparent; /* le cadre remplace le filet de la carte */
+  }
+  .card-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: 16px solid transparent;
+    border-image-slice: 40;
+    border-image-repeat: round;
+    opacity: 0.85;
+  }
+  /* Corde « arcane » à coins crantés — secrets du MJ (notes MJ). */
+  .card-frame-arcana::before {
+    border-image-source: url('./assets/stonetop/frame-arcana.png');
+  }
+  /* Boîte « 2 pt » patinée à coins coupés — encadrés du livre (menaces). */
+  .card-frame-box::before {
+    border-image-source: url('./assets/stonetop/frame-box.png');
+  }
+
+  /* Carte de relation type "tampon encre" — la signature de l'UI */
+  .relation-stamp {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background-color: var(--accent-primary);
+    color: var(--text-inverse);
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    isolation: isolate;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='ink'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='1 0 0 0 0.05  0 1 0 0 0.05  0 0 1 0 0.05  0 0 0 0.32 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ink)'/></svg>");
+    background-blend-mode: screen;
+    box-shadow: 0 6px 18px -8px rgba(28, 22, 14, 0.35);
+  }
+  .relation-stamp::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+  }
+  .relation-stamp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -8px rgba(28, 22, 14, 0.45);
+  }
+  .relation-stamp .stamp-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+  }
+  .relation-stamp .stamp-sub {
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 0.78rem;
+    /* rgb(247,242,232) EST --text-inverse : auto-référencer le token plutôt
+       que le recopier à la main. */
+    color: color-mix(in srgb, var(--text-inverse) 75%, transparent);
+    margin-top: 0.15rem;
+    letter-spacing: 0.01em;
+  }
+  .relation-stamp .stamp-arrow {
+    flex-shrink: 0;
+    color: color-mix(in srgb, var(--text-inverse) 85%, transparent);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  .relation-stamp:hover .stamp-arrow {
+    /* Pleine opacité du blanc-papier — l'ancien #fff faisait virer la TEINTE
+       de la flèche au survol, pas seulement son opacité. */
+    color: var(--text-inverse);
+    transform: translate(2px, -2px);
+  }
+
+  /* Tag pilule avec petit point (cf. "• Ville", "• Faction" sur l'image) */
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.15rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    /* 13px, not 12: the card around it reads at 14px, and a chip a full 2px
+       smaller than its neighbours looked like fine print rather than data. */
+    font-size: 0.8125rem;
+    font-weight: 500;
+    /* Le token nommé POUR ce composant — la pilule utilisait --text-secondary
+       pendant que --tag-text vivait inutilisé à côté. */
+    color: var(--tag-text);
+    /* NO border, NO fill, NO radius. The pill used to carry four separate
+       devices all saying "chip" — border, background, full radius and the ink
+       dot — on a card whose other fields are bare underlines. The dot alone
+       marks it now; ink on paper, not a UI capsule. Interactive chips that
+       need an affordance opt back in locally (cf. ChronicleBacklinks). */
+    line-height: 1.3;
+  }
+  .tag-pill::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--ink-dot);
+  }
+  /* A chip that carries its own checkbox needs no bullet — the box already
+     marks it as an item, and "• ☐ bathe it in the blood…" says so twice. */
+  .tag-pill:has(> [aria-pressed])::before {
+    display: none;
+  }
+
+  /* Champ de saisie style papier */
+  .field-paper {
+    width: 100%;
+    height: 2.75rem;
+    padding: 0 0.95rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-field);
+    border-radius: 0.55rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+  }
+  .field-paper:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--paper-shadow);
+  }
+  .field-paper::placeholder { color: var(--text-muted); }
+
+  /* Champ de recherche : la croix native de WebKit est retirée comme la flèche
+     du select juste en dessous — même raison (elle ignore nos tokens et arrive
+     en gris de système sur du parchemin), et ici elle DOUBLERAIT en plus le
+     bouton d'encre que le grimoire pose dans le champ. */
+  input[type='search'].field-paper::-webkit-search-cancel-button,
+  input[type='search'].field-paper::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Sélecteur natif : on remplace la flèche du navigateur par un chevron encre */
+  select.field-paper {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234A4A4A' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 0.95rem;
+    padding-right: 2rem;
+    cursor: pointer;
+    text-overflow: ellipsis;
+  }
+  select.field-paper:hover { border-color: var(--text-muted); }
+
+  /* Texte longueur (textarea) */
+  .field-paper-area {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    font-family: 'Alegreya Sans', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-field);
+    border-radius: 0.55rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+    resize: vertical;
+  }
+  .field-paper-area:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--paper-shadow);
+  }
+}
+
+/* =====================================================================
+   TipTap (éditeur riche)
+   ===================================================================== */
+.ProseMirror {
+  outline: none;
+  min-height: 120px;
+}
+/* Rendu lecture (hors édition) : la hauteur de saisie réservée n'a plus lieu
+   d'être — le texte fait la hauteur, comme n'importe quelle prose de carte.
+   Ciblé sur le porteur `.tiptap-read` (les chroniques gardent leurs propres
+   hauteurs de saison/focus, plus spécifiques). */
+.tiptap-read .ProseMirror { min-height: 0; }
+.ProseMirror p { margin-bottom: 0.75rem; line-height: 1.6; }
+.ProseMirror p:last-child { margin-bottom: 0; }
+.ProseMirror h2,
+.ProseMirror h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1em 0 0.35em;
+}
+.ProseMirror h2 { font-size: 1.25em; }
+.ProseMirror h3 { font-size: 1.1em; }
+.ProseMirror h2:first-child,
+.ProseMirror h3:first-child { margin-top: 0; }
+.ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.ProseMirror strong { font-weight: 600; }
+.ProseMirror em { font-style: italic; }
+/* Marques StarterKit restantes : la lecture rend désormais le schéma complet
+   (cf. sanitizeHtml.ts) — encre sur papier plutôt que les défauts navigateur
+   (lien bleu, marges de blockquote UA). */
+.ProseMirror a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ProseMirror blockquote {
+  border-left: 2px solid var(--border-paper);
+  padding-left: 0.9rem;
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+}
+.ProseMirror code {
+  font-size: 0.9em;
+  background: var(--bg-card-alt);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+.ProseMirror pre {
+  background: var(--bg-card-alt);
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+.ProseMirror pre code { background: none; padding: 0; }
+.ProseMirror hr {
+  border: 0;
+  border-top: 1px solid var(--border-paper);
+  margin: 1rem 0;
+}
+
+/* Mentions @ : nom relié à une fiche — souligné encre pointillé, cliquable
+   en lecture. `anywhere` : un nom très long casse plutôt que de déborder
+   de la carte. */
+.mention {
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px dashed var(--text-faint);
+  overflow-wrap: anywhere;
+}
+.ProseMirror[contenteditable='false'] .mention,
+.season-display .mention { cursor: pointer; }
+.ProseMirror[contenteditable='false'] .mention:hover,
+.season-display .mention:hover {
+  border-bottom-color: var(--text-primary);
+  border-bottom-style: solid;
+}
+
+/* Menu de suggestion des mentions (positionné au caret, hors flux React) */
+.mention-popup {
+  min-width: 200px;
+  max-width: 280px;
+  padding: 0.3rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-paper);
+  border-radius: 0.55rem;
+  box-shadow: 0 10px 28px -10px rgba(28, 22, 14, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.mention-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  text-align: left;
+}
+.mention-option svg { color: var(--text-muted); flex-shrink: 0; }
+.mention-option span { min-width: 0; overflow-wrap: anywhere; }
+.mention-option.is-active {
+  background-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+.mention-option.is-active svg { color: var(--text-inverse); }
+
+/* =====================================================================
+   Scrollbars discrètes
+   ===================================================================== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* =====================================================================
+   Animations
+   ===================================================================== */
+
+/* Sensibilité au mouvement : neutralise transitions et animations CSS
+   (rotation de la roue incluse) quand l'OS le demande. Framer Motion est
+   couvert par <MotionConfig reducedMotion="user"> dans App.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Le bloc « Graph (custom SVG-based, voir GraphCanvas.tsx) » et les
+   keyframes fadeIn/fadeUp/scaleIn/drift ont été supprimés : GraphCanvas.tsx
+   n'existe plus (le graphe est Sigma/WebGL) et plus rien ne les référençait. */
+
+/* ============================================================
+   Pointeurs grossiers (tactile)
+   ============================================================
+   iOS Safari zoome la page entière au focus de tout champ sous 16px — et ne
+   dézoome pas. ~25 champs posent `text-sm` (14px) sur .field-paper, et les
+   champs de la roue des chroniques descendent à 11.2px. Le correctif racine
+   est ICI, pas sur chaque site : sur écran tactile, aucun contrôle de saisie
+   ne descend sous 16px. `!important` assumé — il doit battre les utilitaires
+   `text-*` posés par les composants, c'est une contrainte matérielle, pas un
+   choix de style. On ne touche PAS à user-scalable/maximum-scale : le zoom
+   volontaire reste intact.
+*/
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  [contenteditable='true'] {
+    font-size: max(16px, 1em) !important;
+  }
+  /* Boutons de mise en forme Tiptap : 26px à la souris, ~34px au doigt. */
+  .tiptap-toolbar button {
+    padding: 0.625rem;
+  }
+}

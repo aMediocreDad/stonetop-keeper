@@ -1,0 +1,4 @@
+Keep this directory in git. The Supabase CLI bind-mounts supabase/snippets into
+the Studio container; Docker auto-creates a missing bind-mount source but podman
+refuses, so `supabase start` fails with a statfs error if this directory is
+absent. Same reason supabase/functions must exist.

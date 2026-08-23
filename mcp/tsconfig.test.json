@@ -1,0 +1,12 @@
+{
+  // Tests run in node (vitest), so they DO get node types — but the Worker
+  // source in tsconfig.json deliberately does not. Keeping them apart is what
+  // stops `process`/`Buffer` from typechecking inside code that ships to an
+  // environment without them.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": ["src"],
+  "exclude": []
+}

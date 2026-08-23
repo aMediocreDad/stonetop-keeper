@@ -1,0 +1,22 @@
+{
+  "name": "ink-stone-mcp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "_comment": "Same reason as ../app: the '&' in the folder name breaks .cmd shims on Windows.",
+    "test": "node ./node_modules/vitest/vitest.mjs run",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/typescript/bin/tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@supabase/supabase-js": "^2.105.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260729.1",
+    "@types/node": "24.13.3",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.8"
+  }
+}

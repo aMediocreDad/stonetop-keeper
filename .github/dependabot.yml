@@ -1,0 +1,60 @@
+# Weekly, grouped. Ungrouped daily PRs are how the last audit found a 6-version
+# TipTap gap and a HIGH advisory sitting unnoticed — one batched PR per
+# ecosystem per week is reviewable, a stream of singletons is not.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # TipTap ships its packages in lockstep and they must move together —
+      # a split family is a real breakage, not a cosmetic one.
+      tiptap:
+        patterns:
+          - '@tiptap/*'
+      react:
+        patterns:
+          - react
+          - react-dom
+          - react-router-dom
+          - '@types/react'
+          - '@types/react-dom'
+      dev-minor-patch:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      prod-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Majors that each need their own migration plan, and none of the three
+      # is routine: Tailwind 4 rewrites the config format the whole design
+      # system lives in, a TypeScript major can break the build in ways only a
+      # full typecheck shows, and an ESLint major moves the flat-config API.
+      # Dependabot opening these as routine PRs just adds noise.
+      - dependency-name: tailwindcss
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: npm
+    directory: /mcp
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      mcp-all:
+        patterns:
+          - '*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

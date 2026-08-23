@@ -1,0 +1,13 @@
+{
+  "name": "stonetop-keeper",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build:app": "npm --prefix app run build",
+    "deploy": "npm run build:app && wrangler deploy",
+    "deploy:dry": "npm run build:app && wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
