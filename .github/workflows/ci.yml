@@ -1,0 +1,157 @@
+# The proof, and only the proof. Building and deploying belong to Cloudflare
+# Workers Builds; applying migrations belongs to the Supabase GitHub
+# integration. This workflow exists so that merging to `main` — which triggers
+# both of those — is safe to do.
+#
+# That safety is NOT provided by this file alone. It comes from branch
+# protection requiring these checks on `main`; without that, a direct push or an
+# auto-merged Dependabot PR migrates unproven schema and CI is decoration.
+#
+# Deliberately needs no secrets. The verification build does not require real
+# Supabase credentials — Cloudflare does the credentialled build — so nothing
+# here can leak one, and a fork PR runs the full gate.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Why a job and not `on.pull_request.paths`: a required check that never runs
+  # leaves a PR stuck on "expected — waiting for status" forever. A *skipped
+  # job* satisfies a required check; a workflow that never started does not. So
+  # the workflow always runs and the schema job decides for itself.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      schema: ${{ steps.filter.outputs.schema }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: filter
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          # On main, always run it. Main is the branch that migrates, and
+          # `github.event.before` is unreliable (all-zeros on a new branch, and
+          # wrong after a force-push), so there is nothing to gain by being
+          # clever here.
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "schema=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --no-tags --depth=50 origin "$BASE_REF"
+          if git diff --name-only "origin/$BASE_REF...HEAD" | grep -qE '^supabase/'; then
+            echo "schema=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "schema=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      # `build` is `tsc -b` then vite, so this is the typecheck as well as the
+      # bundle. It runs without Supabase vars on purpose — see the header.
+      - run: npm run build
+
+  mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+      - run: npm ci
+      - run: npm run test
+      - run: npm run typecheck
+
+  e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      # playwright.config.ts pins `channel: 'chrome'` — real Chrome, not
+      # bundled Chromium, because headless Chromium crashes on the TipTap
+      # sheets. Installing the branded channel is what keeps that true on CI.
+      - run: npx playwright install --with-deps chrome
+      # The config's webServer builds dist-e2e and serves it; no separate build
+      # step belongs here.
+      #
+      # No artifact upload: the reporter is `[['list']]` and no trace is
+      # configured, so there is no HTML report to collect — the failure output
+      # in this log is the evidence. Add `html` to the reporter first if that
+      # ever stops being enough.
+      - run: npm run test:e2e
+
+  # The gate that matters most, because it guards the half that cannot be
+  # rolled back. A clean apply proves only that the SQL parses; these scenarios
+  # assert behaviour.
+  schema:
+    needs: changes
+    if: needs.changes.outputs.schema == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Full stack rather than a curated `-x` exclude list: a wrong service
+      # name in an exclude is an error, and this is not the slow part.
+      - run: supabase start
+      # Rebuilds from supabase/migrations/ alone, so the migration is proven to
+      # apply from nothing — not merely to have applied once, long ago, locally.
+      - run: supabase db reset
+      - name: Behavioural verification
+        env:
+          # The documented local default; `[db] port` in config.toml is 54322.
+          DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(supabase/tests/*.sql)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no behavioural tests found — supabase/tests/ is empty"
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "── $f"
+            # Each scenario is a `do $$ … raise exception 'FAIL …' $$` block
+            # that creates and drops its own throwaway space, so they are
+            # order-independent and re-runnable. ON_ERROR_STOP turns a raise
+            # into a non-zero exit, which is the whole assertion mechanism.
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+          echo "all ${#files[@]} scenarios passed"
