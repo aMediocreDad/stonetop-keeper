@@ -63,4 +63,13 @@ describe('ConnectLlmModal', () => {
     open();
     expect(screen.getByText(/keep it out of shared channels/i)).toBeTruthy();
   });
+
+  // A viewer is a guest, not an operator: the command below carries a live
+  // credential, and handing one to a read-only visitor makes the campaign
+  // scriptable by anyone who was given the invite code.
+  it('renders nothing for a viewer', () => {
+    useAppStore.setState({ session: { ...session, isAdmin: false, role: 'viewer' } });
+    open();
+    expect(screen.queryByText(/claude mcp add/)).toBeNull();
+  });
 });

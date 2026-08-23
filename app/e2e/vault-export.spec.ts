@@ -74,6 +74,10 @@ test('exports a readable vault ZIP', async ({ page }) => {
   await page.goto('/#/dashboard');
 
   await page.getByRole('button', { name: /Example Campaign/ }).click();
+  // Control for the viewer test below: both entries really are reachable in
+  // this environment, so their absence there is the role gate and not a
+  // missing Supabase config or a renamed label.
+  await expect(page.getByRole('button', { name: 'Connect to Claude' })).toBeVisible();
   await page.getByRole('button', { name: 'Export the grimoire' }).click();
 
   const dialog = page.getByRole('dialog');
@@ -118,4 +122,27 @@ test('exports a readable vault ZIP', async ({ page }) => {
   // The vault is made to be handed around; the invite code is a way in.
   expect(manifest).not.toContain('invite_code');
   expect(manifest).not.toContain('aa-aaa');
+});
+
+// A viewer may read the grimoire in the app; a viewer is not handed a way to
+// leave with a copy of it, nor a live credential for an MCP client. Verified in
+// a real browser rather than jsdom because these are menu affordances — what a
+// visitor is actually offered on screen is the whole claim.
+test('offers a viewer neither the export nor the MCP connection', async ({ page }) => {
+  await mockSupabase(page);
+
+  // Same double-stringify idiom as tone-and-content.spec.ts: the role lands in
+  // the script source escaped, so matching the unescaped form silently no-ops
+  // and leaves the test running as a GM.
+  const asViewer = seedSessionScript()
+    .split('\\"role\\":\\"gm\\"')
+    .join('\\"role\\":\\"viewer\\"');
+  expect(asViewer).not.toEqual(seedSessionScript());
+  await page.addInitScript(asViewer);
+  await page.goto('/#/dashboard');
+
+  // The menu opens — this is about what is inside it, not about reaching it.
+  await page.getByRole('button', { name: /Example Campaign/ }).click();
+  await expect(page.getByRole('button', { name: 'Export the grimoire' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Connect to Claude' })).toHaveCount(0);
 });

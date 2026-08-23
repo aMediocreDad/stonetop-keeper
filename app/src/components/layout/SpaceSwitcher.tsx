@@ -8,7 +8,7 @@ import { DeleteSpaceModal } from '@/components/modals/DeleteSpaceModal';
 import { SpaceSettingsModal } from '@/components/modals/SpaceSettingsModal';
 import { ConnectLlmModal } from '@/components/modals/ConnectLlmModal';
 import { ExportVaultModal } from '@/components/modals/ExportVaultModal';
-import { useIsGm } from '@/hooks/useRole';
+import { useCanConnectLlm, useCanExport, useIsGm } from '@/hooks/useRole';
 import { isSupabaseConfigured } from '@/lib/db';
 import { useT } from '@/i18n';
 
@@ -23,6 +23,8 @@ export function SpaceSwitcher() {
   const sessions = useAppStore((s) => s.sessions);
   const switchSpace = useAppStore((s) => s.switchSpace);
   const isGm = useIsGm();
+  const canExport = useCanExport();
+  const canConnectLlm = useCanConnectLlm();
   const [open, setOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
@@ -128,11 +130,13 @@ export function SpaceSwitcher() {
             <span className="truncate">{t('home.join.title')}</span>
           </button>
 
-          {/* Every member, not just the GM: the token they already hold decides
-              what Claude sees, so a player connecting gets the player's view.
+          {/* Players and the GM, not viewers: the token they already hold
+              decides what Claude sees, so a player connecting gets the player's
+              view — but the command embeds that live token, and a read-only
+              visitor is a guest, not an operator.
               Supabase-only — the localStorage fallback has no server session
               token for an MCP client to present. */}
-          {isSupabaseConfigured() && (
+          {canConnectLlm && isSupabaseConfigured() && (
             <>
               <div className="h-px bg-[var(--border-paper)] my-1.5" />
               <button
@@ -148,23 +152,30 @@ export function SpaceSwitcher() {
             </>
           )}
 
-          {/* Every member, at their own role — the export is built from the
-              reads they already have, so a player gets a complete vault of the
-              player's view. NOT gated on Supabase, unlike Connect above: that
-              one needs a server session token to hand an MCP client, whereas an
-              export is just the data this device can already read. It works off
-              the localStorage fallback too. */}
-          <div className="h-px bg-[var(--border-paper)] my-1.5" />
-          <button
-            onClick={() => {
-              setOpen(false);
-              setShowExport(true);
-            }}
-            className={itemCls}
-          >
-            <Download size={14} className="flex-shrink-0" />
-            <span className="truncate">{t('exportVault.menuLabel')}</span>
-          </button>
+          {/* Players and the GM, at their own role — the export is built from
+              the reads they already have, so a player gets a complete vault of
+              the player's view. A viewer is excluded: reading the grimoire in
+              the app is what a visitor is for; leaving with a copy of it is not.
+              NOT gated on Supabase, unlike Connect above: that one needs a
+              server session token to hand an MCP client, whereas an export is
+              just the data this device can already read. It works off the
+              localStorage fallback too — where there is no session, and so no
+              role to demote. */}
+          {canExport && (
+            <>
+              <div className="h-px bg-[var(--border-paper)] my-1.5" />
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setShowExport(true);
+                }}
+                className={itemCls}
+              >
+                <Download size={14} className="flex-shrink-0" />
+                <span className="truncate">{t('exportVault.menuLabel')}</span>
+              </button>
+            </>
+          )}
 
           {/* GM-only: grimoire settings (passwords, public read) and deletion —
               the server enforces this now, but the UI shouldn't offer either

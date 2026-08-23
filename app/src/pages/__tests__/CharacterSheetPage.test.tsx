@@ -31,7 +31,14 @@ vi.mock('@/hooks/useLocations', () => ({
 // value) so a single test can flip it to pin a viewer-can't-tick guard, e.g.
 // `toggleConsequence`'s `if (!canEdit) return`.
 const roleMock = vi.hoisted(() => ({ isGm: true, canEdit: true }));
-vi.mock('@/hooks/useRole', () => ({ useCanEdit: () => roleMock.canEdit, useIsGm: () => roleMock.isGm }));
+// Spread the real module rather than listing exports: this page renders the
+// header, so it pulls in every capability hook SpaceSwitcher uses, and an
+// exhaustive list breaks the whole file the next time one is added.
+vi.mock('@/hooks/useRole', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/useRole')>()),
+  useCanEdit: () => roleMock.canEdit,
+  useIsGm: () => roleMock.isGm,
+}));
 // TipTap n'a pas de précédent de rendu dans cette suite — stub, comme GmJournalPage.
 vi.mock('@/components/shared/RichText', () => ({ RichText: () => null }));
 vi.mock('@/components/shared/GmNotesCard', () => ({ GmNotesCard: () => null }));

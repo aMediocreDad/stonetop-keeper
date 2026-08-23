@@ -3,6 +3,7 @@ import { Copy, Check } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import { useT } from '@/i18n';
 import { Modal } from '@/components/shared/Modal';
+import { useCanConnectLlm } from '@/hooks/useRole';
 
 interface ConnectLlmModalProps {
   isOpen: boolean;
@@ -10,20 +11,26 @@ interface ConnectLlmModalProps {
 }
 
 /**
- * Hands the member the one-liner that points Claude Code at this grimoire. The
- * token in it is the session token they already hold, so the MCP server needs
- * no credential of its own and the role they joined with decides what Claude
- * sees — a player gets the player's view, with no GM layer.
+ * Hands a player or the GM the one-liner that points Claude Code at this
+ * grimoire. The token in it is the session token they already hold, so the MCP
+ * server needs no credential of its own and the role they joined with decides
+ * what Claude sees — a player gets the player's view, with no GM layer.
+ *
+ * Viewers are refused: the command embeds a live credential, and a read-only
+ * visitor is a guest rather than an operator. Refused here as well as in the
+ * menu, so a later entry point cannot reopen it. Note the Worker still accepts
+ * a viewer token it is handed by other means — see `useCanConnectLlm`.
  *
  * The origin is read from the live location rather than hardcoded, so a
  * self-hosted instance produces its own URL.
  */
 export function ConnectLlmModal({ isOpen, onClose }: ConnectLlmModalProps) {
   const t = useT();
+  const canConnectLlm = useCanConnectLlm();
   const session = useAppStore((s) => s.session);
   const [copied, setCopied] = useState(false);
 
-  if (!session) return null;
+  if (!session || !canConnectLlm) return null;
 
   const endpoint = `${window.location.origin}/mcp`;
   const command = `claude mcp add --transport http stonetop ${endpoint} --header "Authorization: Bearer ${session.token}"`;
@@ -46,13 +53,10 @@ export function ConnectLlmModal({ isOpen, onClose }: ConnectLlmModalProps) {
       <p className="text-sm font-body text-[var(--text-secondary)] mb-5">{t('connectLlm.intro')}</p>
 
       {/* Le rôle porté par la commande — un jeton joueur donne à Claude la vue
-          joueur, sans couche MJ ; le dire ici évite un débogage plus tard. */}
+          joueur, sans couche MJ ; le dire ici évite un débogage plus tard.
+          Seuls deux rôles arrivent ici : un visiteur ne rend pas la modale. */}
       <p className="text-sm font-body text-[var(--text-secondary)] mb-5">
-        {session.role === 'gm'
-          ? t('connectLlm.roleGm')
-          : session.role === 'player'
-            ? t('connectLlm.rolePlayer')
-            : t('connectLlm.roleViewer')}
+        {session.role === 'gm' ? t('connectLlm.roleGm') : t('connectLlm.rolePlayer')}
       </p>
 
       <p className="label-overline mb-2">{t('connectLlm.commandLabel')}</p>

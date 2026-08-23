@@ -326,7 +326,6 @@ export type Dict = {
     intro: string;
     roleGm: string;
     rolePlayer: string;
-    roleViewer: string;
     commandLabel: string;
     copy: string;
     copied: string;
@@ -340,7 +339,6 @@ export type Dict = {
     intro: string;
     roleGm: string;
     rolePlayer: string;
-    roleViewer: string;
     contents: string;
     countCharacters: string;
     countLocations: string;
@@ -1190,7 +1188,6 @@ export const en: Dict = {
       'Run this once in your terminal to let Claude Code read this grimoire while you plan — the party, places, maps, recent seasons, and (if you are the GM) the margin notes. It can also write back what you tell it to: recaps, character updates, steading numbers. Every write lands in the Ledger and can be undone.',
     roleGm: 'This command carries your GM access — Claude will see the margin notes and can write to the GM strand.',
     rolePlayer: 'This command carries player access — Claude sees what players see, with no GM layer. Sign in with the GM password first if you want the margins.',
-    roleViewer: 'This command carries read-only viewer access — Claude sees what visitors see, with no GM layer and no writing.',
     commandLabel: 'Command',
     copy: 'Copy command',
     copied: 'Command copied',
@@ -1208,8 +1205,6 @@ export const en: Dict = {
       'You are the GM, so this carries everything, the margin notes and GM strand included.',
     rolePlayer:
       'This carries what players see. The GM layer was never visible to this export, so it will not be in the file.',
-    roleViewer:
-      'This carries what visitors see. The GM layer was never visible to this export, so it will not be in the file.',
     contents: 'What it will contain',
     countCharacters: 'Characters',
     countLocations: 'Locations',

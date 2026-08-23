@@ -3,6 +3,7 @@ import { Download } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import { useT } from '@/i18n';
 import { Modal } from '@/components/shared/Modal';
+import { useCanExport } from '@/hooks/useRole';
 import { downloadVault, type ExportProgress } from '@/lib/export/download';
 
 interface ExportVaultModalProps {
@@ -21,13 +22,17 @@ const VAULT_WRITER_VERSION = '1.0.0';
 /**
  * Downloads the grimoire as an Obsidian-shaped Markdown vault.
  *
- * Offered to every member, at their own role: the export is built from the same
- * role-filtered reads the app already uses, so a player gets a complete vault of
- * what players can see. The role is stated up front rather than discovered
- * later, and recorded in the file's manifest.
+ * Offered to players and the GM, at their own role: the export is built from the
+ * same role-filtered reads the app already uses, so a player gets a complete
+ * vault of what players can see. The role is stated up front rather than
+ * discovered later, and recorded in the file's manifest.
+ *
+ * Viewers are refused here as well as in the menu, so an entry point added later
+ * cannot reopen the affordance by forgetting the check.
  */
 export function ExportVaultModal({ isOpen, onClose }: ExportVaultModalProps) {
   const t = useT();
+  const canExport = useCanExport();
   const session = useAppStore((s) => s.session);
   // Counts come from the store the app has already loaded — mounting the loader
   // hooks here would refetch the space just to print two numbers.
@@ -36,15 +41,11 @@ export function ExportVaultModal({ isOpen, onClose }: ExportVaultModalProps) {
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
 
-  if (!session) return null;
+  if (!session || !canExport) return null;
   const busy = progress !== null && progress.stage !== 'done';
 
-  const roleLine =
-    session.role === 'gm'
-      ? t('exportVault.roleGm')
-      : session.role === 'player'
-        ? t('exportVault.rolePlayer')
-        : t('exportVault.roleViewer');
+  // Only two roles reach this line now — a viewer never renders the modal.
+  const roleLine = session.role === 'gm' ? t('exportVault.roleGm') : t('exportVault.rolePlayer');
 
   const stageLine = () => {
     if (!progress) return '';
