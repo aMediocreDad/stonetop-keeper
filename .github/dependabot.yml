@@ -1,6 +1,15 @@
-# Weekly, grouped. Ungrouped daily PRs are how the last audit found a 6-version
-# TipTap gap and a HIGH advisory sitting unnoticed — one batched PR per
-# ecosystem per week is reviewable, a stream of singletons is not.
+# Weekly, grouped, and held back for a cooldown. Ungrouped daily PRs are how the
+# last audit found a 6-version TipTap gap and a HIGH advisory sitting unnoticed —
+# one batched PR per ecosystem per week is reviewable, a stream of singletons is
+# not.
+#
+# `cooldown` is the supply-chain guard: a version is not proposed until it has
+# been public long enough for a compromised or yanked release to be caught. This
+# costs nothing in vulnerability latency, because **cooldown applies to version
+# updates only — Dependabot security updates bypass it entirely** and still open
+# immediately. GitHub applies a 3-day default as of 2026-07-14; these values are
+# set explicitly so the policy is visible rather than inherited, and so a change
+# to the platform default cannot quietly shorten it.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -8,6 +17,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    cooldown:
+      # A week of public exposure for anything entering the app, and a month for
+      # majors — which need a migration plan anyway, so the wait is free.
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
     groups:
       # TipTap ships its packages in lockstep and they must move together —
       # a split family is a real breakage, not a cosmetic one.
@@ -31,6 +47,17 @@ updates:
         update-types:
           - minor
           - patch
+      # Build-and-test tooling majors, batched. Without this they arrive as one
+      # PR each — vite 8, jsdom 30, globals 17, @types/node 26 and
+      # plugin-react 6 all landed as singletons, which is the noise. They are
+      # safe to consider together because none of them ships to a user: if the
+      # suite, the build and the lint all pass, the bump is good.
+      # Production majors are deliberately NOT grouped — those change what runs
+      # in someone's browser and each deserves its own review.
+      dev-majors:
+        dependency-type: development
+        update-types:
+          - major
     ignore:
       # Majors that each need their own migration plan, and none of the three
       # is routine: Tailwind 4 rewrites the config format the whole design
@@ -49,6 +76,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
     groups:
       mcp-all:
         patterns:
@@ -58,3 +90,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      # Actions are not a SemVer ecosystem for cooldown purposes, so only
+      # `default-days` applies here — the semver-*-days keys are silently
+      # inapplicable rather than an error, which is worse. A tag that moves
+      # under you is the whole risk with actions, so the wait is the point.
+      default-days: 7
