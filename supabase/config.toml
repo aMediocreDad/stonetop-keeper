@@ -385,6 +385,23 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# The GitHub integration deploys ONLY the functions declared here. Without this
+# block `map-image` was never redeployed on merge — it sat at whatever version
+# was last pushed by hand.
+[functions.map-image]
+enabled = true
+# `true` mirrors production (verified against the live project, which runs
+# verify_jwt: true at version 2). It reads as wrong next to the function's own
+# header — "the app has no Supabase Auth users" — but the two are not in
+# conflict: supabase-js sends the anon key as the Authorization bearer, and the
+# anon key IS a signed JWT, so the gateway check passes. Real authorisation is
+# the per-space `x-space-token` header, validated in SQL by map_image_access.
+#
+# Do NOT "fix" this to false. The gateway check is a free outer layer that
+# blocks unauthenticated calls before they reach Deno; setting it false would
+# loosen production the next time this function deploys.
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
