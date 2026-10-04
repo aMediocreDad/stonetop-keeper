@@ -43,7 +43,7 @@ describe('ExportVaultModal', () => {
   it('renders nothing for a viewer', () => {
     open('viewer');
     expect(screen.queryByRole('button', { name: /download/i })).toBeNull();
-    expect(screen.queryByText(/Export the grimoire/i)).toBeNull();
+    expect(screen.queryByText(/Export the journal/i)).toBeNull();
   });
 
   it.each<SpaceRole>(['player', 'gm'])('offers the export to a %s', (role) => {

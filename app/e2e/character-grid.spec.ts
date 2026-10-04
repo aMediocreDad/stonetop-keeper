@@ -191,7 +191,7 @@ test('the drive line carries instincts, and never the doom', async ({ page }) =>
 
 /** La modale de bienvenue s'ouvre au premier chargement d'un grimoire. */
 async function dismissWhatsNew(page: import('@playwright/test').Page) {
-  const dismiss = page.getByRole('button', { name: 'Back to the grimoire' });
+  const dismiss = page.getByRole('button', { name: 'Back to the journal' });
   if (await dismiss.isVisible().catch(() => false)) await dismiss.click();
   await expect(dismiss).toBeHidden();
 }
@@ -202,7 +202,7 @@ test.describe('the search bar', () => {
   });
 
   test('« / » puts the cursor in the field from anywhere on the page', async ({ page }) => {
-    const field = page.getByRole('searchbox', { name: 'Search the grimoire' });
+    const field = page.getByRole('searchbox', { name: 'Search the journal' });
     await page.locator('h1').click();
     await expect(field).not.toBeFocused();
     await page.keyboard.press('/');
@@ -219,12 +219,12 @@ test.describe('the search bar', () => {
     // régions live, et vivent tous deux hors du contenu.
     const status = page.locator('main').getByRole('status');
     await expect(status).toHaveText('');
-    await page.getByRole('searchbox', { name: 'Search the grimoire' }).fill('eurwen');
+    await page.getByRole('searchbox', { name: 'Search the journal' }).fill('eurwen');
     await expect(status).toHaveText('1 of 8 shown');
   });
 
   test('the clear button and Escape both empty the field', async ({ page }) => {
-    const field = page.getByRole('searchbox', { name: 'Search the grimoire' });
+    const field = page.getByRole('searchbox', { name: 'Search the journal' });
     await field.fill('eurwen');
     await expect(page.locator('.card-accent-left')).toHaveCount(1);
 
@@ -240,7 +240,7 @@ test.describe('the search bar', () => {
   });
 
   test('prose is searchable, and the card says where the words came from', async ({ page }) => {
-    const field = page.getByRole('searchbox', { name: 'Search the grimoire' });
+    const field = page.getByRole('searchbox', { name: 'Search the journal' });
     // « tithe » n'est écrit NULLE PART sur une carte : il vit dans les notes.
     await field.fill('tithe');
     const card = page.locator('.card-accent-left');
@@ -262,7 +262,7 @@ test.describe('the search bar', () => {
     // Deux états qui ne se voient que peints : le champ au repos (touche « / »
     // posée à droite) et le champ en train de chercher (croix d'encre, ligne
     // de compte, et la carte qui dit d'où vient le mot).
-    const field = page.getByRole('searchbox', { name: 'Search the grimoire' });
+    const field = page.getByRole('searchbox', { name: 'Search the journal' });
     await page.screenshot({ path: 'test-results/search-idle.png', clip: { x: 0, y: 250, width: 1280, height: 260 } });
     await field.fill('tithe');
     await expect(page.locator('main').getByRole('status')).toHaveText('1 of 8 shown');
@@ -273,7 +273,7 @@ test.describe('the search bar', () => {
   test('a name outranks a mention buried in prose', async ({ page }) => {
     // « grain » est dans les notes d'Eurwen ; « Grain » n'est le nom de
     // personne, donc on cherche un mot que DEUX fiches portent autrement.
-    await page.getByRole('searchbox', { name: 'Search the grimoire' }).fill('the');
+    await page.getByRole('searchbox', { name: 'Search the journal' }).fill('the');
     // Les huit fiches portent « the » quelque part ; la ligne de compte est le
     // point de synchronisation (le champ est débouncé, et lire la grille sans
     // attendre revient à lire l'ordre d'AVANT la recherche).

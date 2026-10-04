@@ -76,14 +76,14 @@ describe('ToneAndContentPage', () => {
     // A viewer must still get the boundaries the table agreed on, not a
     // blank screen: the CATS hint and the read-only notice both render.
     expect(screen.getByText(/Concept · Aim · Tone · Subject matter/)).toBeTruthy();
-    expect(screen.getByText(/reading as a viewer/i)).toBeTruthy();
+    expect(screen.getByText(/read-only access/i)).toBeTruthy();
   });
 
   it('shows the empty prompt instead of the editor once loaded with nothing written', () => {
     tacMock.notes = '';
     tacMock.loaded = true;
     renderPage();
-    expect(screen.getByText(/Nothing agreed here yet/)).toBeTruthy();
+    expect(screen.getByText(/No agreements recorded yet/)).toBeTruthy();
     expect(screen.queryByTestId('richtext')).toBeNull();
   });
 
@@ -91,7 +91,7 @@ describe('ToneAndContentPage', () => {
     tacMock.notes = '';
     tacMock.loaded = false;
     renderPage();
-    expect(screen.queryByText(/Nothing agreed here yet/)).toBeNull();
+    expect(screen.queryByText(/No agreements recorded yet/)).toBeNull();
     expect(screen.getByTestId('richtext')).toBeTruthy();
   });
 
@@ -103,7 +103,7 @@ describe('ToneAndContentPage', () => {
     tacMock.notes = '<p></p>';
     tacMock.loaded = true;
     renderPage();
-    expect(screen.getByText(/Nothing agreed here yet/)).toBeTruthy();
+    expect(screen.getByText(/No agreements recorded yet/)).toBeTruthy();
     expect(screen.queryByTestId('richtext')).toBeNull();
   });
 });

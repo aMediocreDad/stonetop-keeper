@@ -62,7 +62,7 @@ describe('UndoConfirmModal — group_intact-driven changed-since messaging', () 
 
     expect(loadPlan).toHaveBeenCalledWith('e1', undefined);
     expect(screen.getByText(en.ledger.confirm.changedSince)).toBeTruthy();
-    expect(screen.queryByText(/edits made in the same run/)).toBeNull();
+    expect(screen.queryByText(/part of a set of/)).toBeNull();
   });
 
   it('a grouped revert forwards the expectation event to loadPlan, and suppresses the per-row warning only when the server confirms group_intact: true', async () => {

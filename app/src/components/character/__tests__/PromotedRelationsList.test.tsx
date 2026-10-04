@@ -120,13 +120,13 @@ describe('PromotedRelationsList', () => {
     expect(add.getAttribute('aria-label')).toMatch(/^Add\b/);
   });
 
-  // The empty line follows the KIND, like the heading does. "Possessed by"
-  // over "Leads nowhere yet." was the case that read as broken.
+  // The empty line follows the KIND, like the heading does. A holder section
+  // should not use the generic linked-entry empty state.
   it('says an artifact has no holder in the artifact\'s own words', () => {
     const cs = [char('a', 'Red Scepter', 'DISCOVERY', 'artifact'), char('n', 'Vahid', 'PNJ')];
     show('a', cs, []);
-    expect(screen.getByText('No one holds this yet.')).toBeTruthy();
-    expect(screen.queryByText('Leads nowhere yet.')).toBeNull();
+    expect(screen.getByText('No holder recorded.')).toBeTruthy();
+    expect(screen.queryByText('No linked entries yet.')).toBeNull();
   });
 
   it('hides it once one holder exists (cap 1)', () => {

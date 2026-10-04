@@ -61,7 +61,7 @@ describe('ConnectLlmModal', () => {
 
   it('warns that the command is a credential', () => {
     open();
-    expect(screen.getByText(/keep it out of shared channels/i)).toBeTruthy();
+    expect(screen.getByText(/Do not share it in messages or screenshots/i)).toBeTruthy();
   });
 
   // A viewer is a guest, not an operator: the command below carries a live
