@@ -119,7 +119,11 @@ test('a long note scrolls inside the editor instead of stretching the modal', as
   expect(geo.bottom).toBeLessThanOrEqual(geo.viewportH);
   expect(geo.scrollable, 'the editor should be the thing that scrolls').toBe(true);
 
-  // The wheel moves the prose, not the page.
+  // The wheel moves the prose, not the page. Compared against the page's own
+  // offset before the wheel, not against 0: opening the notes clicks a button
+  // Playwright first scrolls into view, which on CI's layout leaves the page
+  // at 315px before the wheel ever turns.
+  const pageBefore = await page.evaluate(() => window.scrollY);
   await page.mouse.move(640, 500);
   await page.mouse.wheel(0, 500);
   await page.waitForTimeout(300);
@@ -128,7 +132,7 @@ test('a long note scrolls inside the editor instead of stretching the modal', as
     page: window.scrollY,
   }));
   expect(after.editor).toBeGreaterThan(0);
-  expect(after.page).toBe(0);
+  expect(after.page).toBe(pageBefore);
 
   // The toolbar stays put while the prose moves under it.
   await expect(page.getByRole('button', { name: /bold/i })).toBeVisible();
