@@ -1,7 +1,6 @@
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
-import { inspectAttr } from 'kimi-plugin-inspect-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { pwaManifest } from './src/pwaManifest'
 
@@ -9,7 +8,6 @@ import { pwaManifest } from './src/pwaManifest'
 export default defineConfig({
   base: '/',
   plugins: [
-    inspectAttr(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -66,22 +64,18 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 700,
-    rollupOptions: {
+    // Rolldown (Vite 8) has no object form of `manualChunks`. Rollup's object
+    // form also pulled each listed package's own dependencies into its chunk,
+    // so the patterns name those too: ProseMirror under TipTap, the d3 and
+    // graphology helpers under the graph.
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'motion': ['framer-motion'],
-          'tiptap': [
-            '@tiptap/react',
-            '@tiptap/starter-kit',
-            '@tiptap/extension-placeholder',
-            '@tiptap/extension-mention',
-            '@tiptap/suggestion',
-          ],
-          'graph': [
-            'graphology',
-            'sigma',
-            'd3-force',
+        codeSplitting: {
+          groups: [
+            { name: 'react-vendor', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
+            { name: 'motion', test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/ },
+            { name: 'tiptap', test: /node_modules[\\/](@tiptap|prosemirror-[^\\/]+|orderedmap|rope-sequence|w3c-keyname|linkifyjs)[\\/]/ },
+            { name: 'graph', test: /node_modules[\\/](graphology[^\\/]*|sigma|@sigma[\\/][^\\/]+|d3-[^\\/]+)[\\/]/ },
           ],
         },
       },
