@@ -81,7 +81,7 @@ test('exports a readable vault ZIP', async ({ page }) => {
   await page.getByRole('button', { name: 'Export the journal' }).click();
 
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByText('Characters: 1')).toBeVisible();
+  await expect(dialog.getByText('Entries: 1')).toBeVisible();
   await expect(dialog.getByText(/Includes GM-only content/)).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');

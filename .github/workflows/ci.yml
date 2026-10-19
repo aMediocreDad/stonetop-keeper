@@ -34,10 +34,14 @@ jobs:
     outputs:
       schema: ${{ steps.filter.outputs.schema }}
     steps:
+      # On a PR, HEAD is GitHub's test merge commit and its first parent is the
+      # base tip, so HEAD^1..HEAD is exactly the PR's change. Depth 2 is all
+      # that needs. A shallow `origin/<base>...HEAD` has no merge base and
+      # fails, which once made this job report "no schema change" on every PR.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - id: filter
-        env:
-          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
           # On main, always run it. Main is the branch that migrates, and
@@ -48,8 +52,10 @@ jobs:
             echo "schema=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git fetch --no-tags --depth=50 origin "$BASE_REF"
-          if git diff --name-only "origin/$BASE_REF...HEAD" | grep -qE '^supabase/'; then
+          # Its own statement, not inside the `if`: a failing diff must fail the
+          # step, never read as "no schema change".
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          if grep -qE '^supabase/' <<< "$changed"; then
             echo "schema=true" >> "$GITHUB_OUTPUT"
           else
             echo "schema=false" >> "$GITHUB_OUTPUT"
