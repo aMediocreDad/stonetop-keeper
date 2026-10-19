@@ -109,7 +109,7 @@ test.describe('tone & content', () => {
     await page.goto('/#/tone-and-content');
 
     // The empty-state prompt, not a blank box.
-    await expect(page.getByText(/nothing agreed here yet/i)).toBeVisible();
+    await expect(page.getByText(/No agreements recorded yet/i)).toBeVisible();
 
     await page.getByRole('button', { name: /^edit$/i }).click();
 
@@ -126,7 +126,7 @@ test.describe('tone & content', () => {
 
     await page.reload();
     await expect(page.getByText('Plays it straight.')).toBeVisible();
-    await expect(page.getByText(/nothing agreed here yet/i)).toHaveCount(0);
+    await expect(page.getByText(/No agreements recorded yet/i)).toHaveCount(0);
   });
 
   test('a viewer reads it and is given no way to edit it', async ({ page }) => {
@@ -155,7 +155,7 @@ test.describe('tone & content', () => {
     await page.addInitScript(seedSessionScript());
     await page.goto('/#/ledger');
 
-    await expect(page.getByText(/wrote in the tone & content/i)).toBeVisible();
+    await expect(page.getByText(/Tone & content was edited/i)).toBeVisible();
     await expect(page.getByText(/ledger\.headline/)).toHaveCount(0);
   });
 });

@@ -106,7 +106,7 @@ test('the location dropdown paints above the cards below it', async ({ page }) =
   await page.goto(`/#/character/${NPC_ID}`);
 
   await page.getByRole('button', { name: 'Edit' }).click();
-  const picker = page.getByRole('button', { name: /Pick a location/ });
+  const picker = page.getByRole('button', { name: /Choose a location/ });
   await picker.scrollIntoViewIfNeeded();
   await picker.click();
 
@@ -148,7 +148,7 @@ test('the location field is a sheet row, not a form field (matches the other sel
   await page.goto(`/#/character/${NPC_ID}`);
   await page.getByRole('button', { name: 'Edit' }).click();
 
-  const picker = page.getByRole('button', { name: /Pick a location/ });
+  const picker = page.getByRole('button', { name: /Choose a location/ });
   const select = page.getByLabel(/^Type$/);
   const pickerH = (await picker.boundingBox())!.height;
   const selectH = (await select.boundingBox())!.height;
@@ -188,14 +188,15 @@ test('GM-only fields say so: instinct and a non-follower stat block are marked',
   await mockSheet(page);
   await page.goto(`/#/character/${NPC_ID_PLAIN}`);
 
-  await expect(page.getByTitle(/Only you can see this instinct/)).toBeVisible();
-  await expect(page.getByTitle(/Only you can see this stat block/)).toBeVisible();
+  const gmOnlyMarks = page.getByTitle('Hidden from players unless this NPC is a follower.', { exact: true });
+  await expect(gmOnlyMarks).toHaveCount(2);
+  await expect(gmOnlyMarks.nth(0)).toBeVisible();
+  await expect(gmOnlyMarks.nth(1)).toBeVisible();
 
   // Ticking Follower reveals the sheet to players — both marks must go.
   await page.getByRole('button', { name: 'Edit' }).click();
   await page.getByRole('button', { name: 'Follower', exact: true }).click();
-  await expect(page.getByTitle(/Only you can see this instinct/)).toHaveCount(0);
-  await expect(page.getByTitle(/Only you can see this stat block/)).toHaveCount(0);
+  await expect(gmOnlyMarks).toHaveCount(0);
 });
 
 test('a threat gets no Role field and no Follower toggle — its mechanics stay GM prep', async ({ page }) => {
@@ -204,8 +205,10 @@ test('a threat gets no Role field and no Follower toggle — its mechanics stay 
 
   // Une menace est de la prep de MJ, et rien ne peut l'en sortir : pas de
   // bascule Follower, donc les deux marques « MJ seul » restent.
-  await expect(page.getByTitle(/Only you can see this instinct/)).toBeVisible();
-  await expect(page.getByTitle(/Only you can see this stat block/)).toBeVisible();
+  const gmOnlyMarks = page.getByTitle('Hidden from players unless this NPC is a follower.', { exact: true });
+  await expect(gmOnlyMarks).toHaveCount(2);
+  await expect(gmOnlyMarks.nth(0)).toBeVisible();
+  await expect(gmOnlyMarks.nth(1)).toBeVisible();
 
   await page.getByRole('button', { name: 'Edit' }).click();
   await expect(page.getByRole('button', { name: 'Follower', exact: true })).toHaveCount(0);

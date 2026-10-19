@@ -108,12 +108,9 @@ describe('RelationsList — GM badge placement', () => {
 });
 
 describe('the type picker filters by the pair', () => {
-  // The brief's own locator names ("Add a relation" / "Choose a
-  // character…") don't match this app's actual copy — the add button and
-  // its type select share the accessible name t('character.addRelation')
+  // The add button and its type select share the accessible name t('character.addRelation')
   // ("Add a bond"), and the target select's is t('character.pickCharacter')
-  // ("Pick a character…"); "Choose a character…" belongs to the unrelated
-  // MembersList picker. Using the real accessible names here; the picker
+  // ("Choose a character…"). Using the real accessible names here; the picker
   // behaviour under test is unchanged.
   it('offers structural types only, on a discovery sheet', () => {
     roleMock.canEdit = true;
@@ -121,7 +118,7 @@ describe('the type picker filters by the pair', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add a bond' }));
     // The pair is (this sheet, the chosen target), so the filter has to react
     // to the target select too — before a target is picked, everything shows.
-    fireEvent.change(screen.getByRole('combobox', { name: 'Pick a character…' }), {
+    fireEvent.change(screen.getByRole('combobox', { name: 'Choose a character…' }), {
       target: { value: charB.id },
     });
     const picker = screen.getByRole('combobox', { name: 'Add a bond' });
@@ -135,7 +132,7 @@ describe('the type picker filters by the pair', () => {
     roleMock.canEdit = true;
     renderList({ characterId: charA.id, characters: [charA, charB], relations: [] });
     fireEvent.click(screen.getByRole('button', { name: 'Add a bond' }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'Pick a character…' }), {
+    fireEvent.change(screen.getByRole('combobox', { name: 'Choose a character…' }), {
       target: { value: charB.id },
     });
     const picker = screen.getByRole('combobox', { name: 'Add a bond' });
@@ -152,7 +149,7 @@ describe('the type picker filters by the pair', () => {
     fireEvent.change(picker, { target: { value: 'romance' } });
     // Now choose the discovery: `romance` is no longer offered, and the select
     // must not keep it as its state while showing "Leads to".
-    fireEvent.change(screen.getByRole('combobox', { name: 'Pick a character…' }), {
+    fireEvent.change(screen.getByRole('combobox', { name: 'Choose a character…' }), {
       target: { value: charD.id },
     });
     expect(picker.value).toBe('leads-to');

@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "dev": "npm --prefix app run dev --",
     "build:app": "npm --prefix app run build",
     "deploy": "npm run build:app && wrangler deploy",
     "deploy:dry": "npm run build:app && wrangler deploy --dry-run"

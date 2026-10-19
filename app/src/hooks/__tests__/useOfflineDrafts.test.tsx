@@ -238,7 +238,7 @@ describe('steading drafts', () => {
   // the edit in `pendingSteading` and the reconnect flush re-sends it, so
   // "check your connection and try again" (steading.saveError) was wrong on
   // both counts. Application errors keep the retry copy.
-  it('announces "kept and will go up" for a network failure, not "try again"', async () => {
+  it('announces "kept here and will be retried" for a network failure, not "try again"', async () => {
     const space = localDb.createSpace({ name: 'S', invite_code: 'OFF008', password_hash: 'x' });
     const loc = localDb.createLocation({
       space_id: space.id,
@@ -268,7 +268,7 @@ describe('steading drafts', () => {
     });
 
     const toast = useAppStore.getState().toast;
-    expect(toast?.message).toContain('kept here and will go up');
+    expect(toast?.message).toContain('kept here and will be retried');
     // The edit itself must still be queued for the reconnect flush.
     expect(pendingSteading.get(loc.id)?.stats.prosperity).toBe(2);
   });

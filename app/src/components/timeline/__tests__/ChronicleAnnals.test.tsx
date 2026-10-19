@@ -103,7 +103,7 @@ describe('ChronicleAnnals', () => {
     renderAnnals(space.id);
 
     expect(
-      await screen.findByText(/record an entry to begin the annals/i),
+      await screen.findByText('No entries yet. Add one to record what happened.'),
     ).toBeTruthy();
     expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
 

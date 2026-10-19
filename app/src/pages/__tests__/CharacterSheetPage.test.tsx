@@ -253,20 +253,20 @@ describe('instinct', () => {
   // MJ voit tout, donc il ne pouvait pas savoir ce qui fuit vers les joueurs.
   it('marks the instinct row GM-only on a non-follower, and not on a follower', () => {
     renderSheet({ ...npc, instinct: 'stay hidden' });
-    expect(screen.getByTitle(/Only you can see this instinct/)).toBeTruthy();
+    expect(screen.getByTitle('Hidden from players unless this NPC is a follower.')).toBeTruthy();
 
     cleanup();
     renderSheet({ ...npc, instinct: 'protect the herd',
       follower: { cost: '', loyalty: 0, leaderId: null } });
-    expect(screen.queryByTitle(/Only you can see this instinct/)).toBeNull();
+    expect(screen.queryByTitle('Hidden from players unless this NPC is a follower.')).toBeNull();
   });
 
   it('drops the instinct GM-only mark live when the Follower box is ticked', () => {
     renderSheet({ ...npc, instinct: 'stay hidden' });
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    expect(screen.getByTitle(/Only you can see this instinct/)).toBeTruthy();
+    expect(screen.getByTitle('Hidden from players unless this NPC is a follower.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Follower' }));
-    expect(screen.queryByTitle(/Only you can see this instinct/)).toBeNull();
+    expect(screen.queryByTitle('Hidden from players unless this NPC is a follower.')).toBeNull();
   });
 });
 
@@ -374,7 +374,7 @@ describe('threat type', () => {
     });
     expect(screen.queryByText('Follower')).toBeNull();
     expect(screen.queryByRole('group', { name: 'Loyalty' })).toBeNull();
-    expect(screen.getByTitle(/Only you can see this instinct/)).toBeTruthy();
+    expect(screen.getAllByTitle('Hidden from players unless this NPC is a follower.')).toHaveLength(2);
   });
 
   // La règle elle-même, côté écran : pas de champ Rôle, pas de case Follower.
@@ -819,13 +819,13 @@ describe('location', () => {
     renderSheet({ ...npc, location: null });
     expect(screen.queryByText('Marshedge')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    expect(screen.getByRole('button', { name: 'Pick a location…' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Choose a location…' })).toBeTruthy();
   });
 
   it('still sends the id when a location is picked', async () => {
     renderSheet(npc);
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Pick a location…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Choose a location…' }));
     fireEvent.click(screen.getByRole('button', { name: 'Marshedge' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(updateCharacter).toHaveBeenCalled());
@@ -1068,7 +1068,7 @@ describe('the DISCOVERY sheet', () => {
   it('prints an arcanum as the book`s card instead of a notes block', () => {
     const { container } = renderSheet(discovery());
     expect(container.querySelectorAll('[data-card-face]')).toHaveLength(1);
-    expect(screen.queryByText('Description / Notes')).toBeNull();
+    expect(screen.queryByText('Description & notes')).toBeNull();
   });
 
   // One editing model: the card is a read view, and edit mode is the ordinary
@@ -1077,14 +1077,14 @@ describe('the DISCOVERY sheet', () => {
     const { container } = renderSheet(discovery());
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     expect(container.querySelectorAll('[data-card-face]')).toHaveLength(0);
-    expect(screen.getByText('Description / Notes')).toBeTruthy();
+    expect(screen.getByText('Description & notes')).toBeTruthy();
   });
 
   // A clue is a signifier, not an object: no card, no game elements.
   it('leaves the notes block alone for a kind that is not a card', () => {
     const { container } = renderSheet(discovery({ role: 'clue' }));
     expect(container.querySelectorAll('[data-card-face]')).toHaveLength(0);
-    expect(screen.getByText('Description / Notes')).toBeTruthy();
+    expect(screen.getByText('Description & notes')).toBeTruthy();
   });
 });
 
@@ -1135,7 +1135,7 @@ describe('leads', () => {
     relationsMock.relations = [{ ...lead, from_character_id: 'c-2', to_character_id: 'd-1' }];
     renderSheet(site, undefined, [npc]);
     expect(screen.queryByText('What leads here')).toBeNull();
-    expect(screen.getByText('Leads nowhere yet.')).toBeTruthy();
+    expect(screen.getByText('No linked entries yet.')).toBeTruthy();
     // It surfaces in the generic list instead, labelled.
     expect(screen.getByTitle(/Elios — Leads to/)).toBeTruthy();
   });
@@ -1401,7 +1401,7 @@ describe('discovery block fields', () => {
     renderSheet(discovery({ discovery: { tracks: [{ label: 'Charges', max: 3, marked: 2 }] } }));
     enterEditMode();
     fireEvent.change(screen.getByLabelText('Track label 1'), { target: { value: 'Progress' } });
-    fireEvent.change(screen.getByLabelText('Track max 1'), { target: { value: '4' } });
+    fireEvent.change(screen.getByLabelText('Track maximum 1'), { target: { value: '4' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(updateCharacter).toHaveBeenCalledTimes(1));
@@ -1416,7 +1416,7 @@ describe('discovery block fields', () => {
     roleMock.isGm = true;
     renderSheet(discovery({ discovery: { tracks: [{ label: 'Charges', max: 3, marked: 0 }] } }));
     enterEditMode();
-    fireEvent.change(screen.getByLabelText('Track max 1'), { target: { value: '-5' } });
+    fireEvent.change(screen.getByLabelText('Track maximum 1'), { target: { value: '-5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(updateCharacter).toHaveBeenCalledTimes(1));

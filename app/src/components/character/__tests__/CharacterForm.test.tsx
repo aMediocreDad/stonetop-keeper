@@ -37,7 +37,7 @@ function renderForm() {
 /**
  * The type row (CharacterForm.tsx ~:130-160) mirrors DashboardPage's
  * type-filter row: `overflow-x-auto` + `whitespace-nowrap` so five full
- * names ("Non-Player Character" included) scroll instead of wrapping or
+ * names ("Non-player character" included) scroll instead of wrapping or
  * clipping in the `max-w-lg` dialog. jsdom does no layout, so it cannot see
  * whether that scroll actually engages at a given width — that is a headed
  * check. What it CAN verify, independent of any layout: which options exist
@@ -52,7 +52,7 @@ describe('CharacterForm type row', () => {
     const typeButtons = container.querySelectorAll('button[aria-pressed]');
     expect(typeButtons).toHaveLength(5);
     for (const name of [
-      'Player Character', 'Non-Player Character', 'Group', 'Threat', 'Discovery',
+      'Player character', 'Non-player character', 'Group', 'Threat', 'Discovery',
     ]) {
       expect(screen.getByRole('button', { name })).toBeTruthy();
     }
@@ -68,8 +68,8 @@ describe('CharacterForm type row', () => {
     const { container } = renderForm();
     const typeButtons = container.querySelectorAll('button[aria-pressed]');
     expect(typeButtons).toHaveLength(3);
-    expect(screen.getByRole('button', { name: 'Player Character' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Non-Player Character' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Player character' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Non-player character' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Group' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Threat' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Discovery' })).toBeNull();

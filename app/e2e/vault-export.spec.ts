@@ -78,11 +78,11 @@ test('exports a readable vault ZIP', async ({ page }) => {
   // this environment, so their absence there is the role gate and not a
   // missing Supabase config or a renamed label.
   await expect(page.getByRole('button', { name: 'Connect to Claude' })).toBeVisible();
-  await page.getByRole('button', { name: 'Export the grimoire' }).click();
+  await page.getByRole('button', { name: 'Export the journal' }).click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByText('Characters: 1')).toBeVisible();
-  await expect(dialog.getByText(/You are the GM/)).toBeVisible();
+  await expect(dialog.getByText(/Includes GM-only content/)).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Download' }).click();
@@ -143,6 +143,6 @@ test('offers a viewer neither the export nor the MCP connection', async ({ page 
 
   // The menu opens — this is about what is inside it, not about reaching it.
   await page.getByRole('button', { name: /Example Campaign/ }).click();
-  await expect(page.getByRole('button', { name: 'Export the grimoire' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Export the journal' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Connect to Claude' })).toHaveCount(0);
 });

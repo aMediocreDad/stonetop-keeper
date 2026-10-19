@@ -47,7 +47,7 @@ describe('SeasonFocusModal conflict banner', () => {
   it('shows their version and both actions', () => {
     renderModal();
     const banner = screen.getByRole('alert');
-    expect(banner.textContent).toContain('Someone else wrote in this season');
+    expect(banner.textContent).toContain('Someone else changed this entry');
     expect(banner.textContent).toContain('Ambush');
     // Chaîne absente des libellés de boutons : prouve le rendu du corps
     // assaini (dangerouslySetInnerHTML), pas seulement le texte du chrome.
@@ -56,9 +56,9 @@ describe('SeasonFocusModal conflict banner', () => {
 
   it('routes both resolutions with the strand', () => {
     const onResolve = renderModal();
-    fireEvent.click(screen.getByText('Take theirs'));
+    fireEvent.click(screen.getByText('Use their version'));
     expect(onResolve).toHaveBeenCalledWith('player', 'theirs');
-    fireEvent.click(screen.getByText('Keep mine'));
+    fireEvent.click(screen.getByText('Keep my version'));
     expect(onResolve).toHaveBeenCalledWith('player', 'mine');
   });
 });
