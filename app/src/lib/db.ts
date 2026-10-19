@@ -1140,7 +1140,7 @@ function withConnectivity<A extends unknown[], R>(
     } catch (err) {
       if (isNetworkError(err)) {
         markNetworkFailure();
-        throw new Error(ERR_OFFLINE);
+        throw new Error(ERR_OFFLINE, { cause: err });
       }
       throw err;
     }
