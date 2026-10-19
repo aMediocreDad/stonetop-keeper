@@ -32,7 +32,7 @@
     "framer-motion": "14.4.0",
     "graphology": "0.26.0",
     "idb": "8.0.4",
-    "lucide-react": "0.562.0",
+    "lucide-react": "1.59.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-router-dom": "7.18.4",
