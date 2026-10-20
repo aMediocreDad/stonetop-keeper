@@ -131,9 +131,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      # Pinned: `latest` asks the GitHub API which release that is, and a
+      # rate-limited answer failed the gate with nothing wrong in the schema.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.121.0
       # Full stack rather than a curated `-x` exclude list: a wrong service
       # name in an exclude is an error, and this is not the slow part.
       - run: supabase start
