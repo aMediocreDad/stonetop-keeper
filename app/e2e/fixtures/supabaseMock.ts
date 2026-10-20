@@ -13,10 +13,15 @@ export const MAP_ID = '22222222-2222-2222-2222-222222222222';
 export const MAP_UPDATED_AT = '2026-08-02T10:00:00.000Z';
 export const PIN_LABEL = 'The Old Bridge';
 
-/** A tiny but real PNG, so the browser decodes it like any other image. */
+/**
+ * A tiny but real PNG, so the browser decodes it like any other image. 4×3,
+ * the same shape as the map row's 4000×3000: the `<img>` lays out from the
+ * row's dimensions until the bytes decode, then from the image's own. An 8×8
+ * square refitted the view on load, and on a slow runner the pins painted
+ * before it and jumped.
+ */
 const PNG_BYTES = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHUlEQVQoU2NkYGD4z0AEYBxVSF' +
-    'BFjIyMDKMKCasIAJDrBAX3l2mFAAAAAElFTkSuQmCC',
+  'iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAEklEQVR4nGPoqor5j4wZCAoAAM5ZHHV77I7hAAAAAElFTkSuQmCC',
   'base64',
 );
 

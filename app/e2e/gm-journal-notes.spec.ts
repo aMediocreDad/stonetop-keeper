@@ -142,13 +142,20 @@ test('on a phone the notes modal is full-bleed, not a card in a wide margin', as
   await page.setViewportSize({ width: 390, height: 780 });
   await openNotes(page, LONG);
 
+  // Measured against the fixed overlay, not `innerWidth`: `html` reserves a
+  // stable scrollbar gutter, so where scrollbars are classic (CI's Linux
+  // Chrome) the most any fixed layer can span is 8px short of the window. On
+  // a phone the scrollbars overlay and the two are the same.
   const box = await page.evaluate(() => {
-    const r = (document.querySelector('[role="dialog"]') as HTMLElement).getBoundingClientRect();
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    const r = dialog.getBoundingClientRect();
+    const overlay = dialog.closest('.fixed') as HTMLElement;
     return {
       x: Math.round(r.x),
       w: Math.round(r.width),
       h: Math.round(r.height),
-      vw: window.innerWidth,
+      // Border box, so a scrollbar on the overlay itself still fails this.
+      vw: Math.round(overlay.getBoundingClientRect().width),
       vh: window.innerHeight,
     };
   });
