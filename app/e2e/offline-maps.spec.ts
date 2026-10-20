@@ -61,6 +61,23 @@ async function readBlobKeys(page: import('@playwright/test').Page): Promise<stri
   );
 }
 
+/**
+ * Waits until the service worker controls the page. Cutting the network before
+ * then is a first-visit race, not the offline path: the lazy map route chunk
+ * bypasses the precache and the error boundary renders instead of the map.
+ * Same wait as offline-shell.
+ */
+async function waitForWorkerControl(page: import('@playwright/test').Page) {
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.evaluate(async () => {
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((r) =>
+        navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }),
+      );
+    }
+  });
+}
+
 test('prefetches map bytes into IndexedDB while online', async ({ page }) => {
   const counters = await mockSupabase(page);
   await page.addInitScript(seedSessionScript());
@@ -108,6 +125,7 @@ test('renders the map from IndexedDB with the network cut', async ({ page, conte
     })
     .toBe(true);
 
+  await waitForWorkerControl(page);
   await context.setOffline(true);
   await page.goto(`/#/map/${MAP_ID}`);
 
@@ -133,6 +151,7 @@ test('keeps the map pins offline, not just the image', async ({ page, context })
     .poll(async () => (await readBlobKeys(page)).includes(BLOB_KEY), { timeout: 20_000 })
     .toBe(true);
 
+  await waitForWorkerControl(page);
   await context.setOffline(true);
   await page.reload();
 
