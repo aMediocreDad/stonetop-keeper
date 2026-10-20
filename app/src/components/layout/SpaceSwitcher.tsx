@@ -84,11 +84,11 @@ export function SpaceSwitcher() {
       >
         {/* Point papier, pas un vert de statut : la palette n'a AUCUN vert,
             et « connecté » n'est pas une information que ce point portait. */}
-        <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-inverse)] opacity-80 flex-shrink-0" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-inverse)] opacity-80 shrink-0" />
         <span className="text-[var(--text-inverse)] text-xs font-medium font-body truncate max-w-[100px] sm:max-w-[180px]">
           {session.space.name}
         </span>
-        <ChevronDown size={12} className="text-[var(--text-inverse)] flex-shrink-0" />
+        <ChevronDown size={12} className="text-[var(--text-inverse)] shrink-0" />
       </button>
 
       {open && (
@@ -103,7 +103,7 @@ export function SpaceSwitcher() {
               <button key={s.id} onClick={() => switchTo(s.id)} className={itemCls}>
                 <span className="truncate flex-1">{s.name}</span>
                 {s.id === session.space.id && (
-                  <Check size={14} className="flex-shrink-0 text-[var(--accent-primary)]" />
+                  <Check size={14} className="shrink-0 text-[var(--accent-primary)]" />
                 )}
               </button>
             ))}
@@ -116,7 +116,7 @@ export function SpaceSwitcher() {
             }}
             className={itemCls}
           >
-            <Plus size={14} className="flex-shrink-0" />
+            <Plus size={14} className="shrink-0" />
             <span className="truncate">{t('home.create.title')}</span>
           </button>
           <button
@@ -126,7 +126,7 @@ export function SpaceSwitcher() {
             }}
             className={itemCls}
           >
-            <LogIn size={14} className="flex-shrink-0" />
+            <LogIn size={14} className="shrink-0" />
             <span className="truncate">{t('home.join.title')}</span>
           </button>
 
@@ -146,7 +146,7 @@ export function SpaceSwitcher() {
                 }}
                 className={itemCls}
               >
-                <Terminal size={14} className="flex-shrink-0" />
+                <Terminal size={14} className="shrink-0" />
                 <span className="truncate">{t('connectLlm.menuLabel')}</span>
               </button>
             </>
@@ -171,7 +171,7 @@ export function SpaceSwitcher() {
                 }}
                 className={itemCls}
               >
-                <Download size={14} className="flex-shrink-0" />
+                <Download size={14} className="shrink-0" />
                 <span className="truncate">{t('exportVault.menuLabel')}</span>
               </button>
             </>
@@ -191,7 +191,7 @@ export function SpaceSwitcher() {
                   }}
                   className={itemCls}
                 >
-                  <ScrollText size={14} className="flex-shrink-0" />
+                  <ScrollText size={14} className="shrink-0" />
                   <span className="truncate">{t('ledger.menuLabel')}</span>
                 </button>
               )}
@@ -202,7 +202,7 @@ export function SpaceSwitcher() {
                 }}
                 className={itemCls}
               >
-                <Settings size={14} className="flex-shrink-0" />
+                <Settings size={14} className="shrink-0" />
                 <span className="truncate">{t('spaceSettings.menuLabel')}</span>
               </button>
             </>
@@ -218,7 +218,7 @@ export function SpaceSwitcher() {
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm font-body text-[var(--danger)] hover:bg-[var(--danger-soft)] transition-colors"
               >
-                <Trash2 size={14} className="flex-shrink-0" />
+                <Trash2 size={14} className="shrink-0" />
                 <span className="truncate">{t('deleteSpace.button')}</span>
               </button>
             </>

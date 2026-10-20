@@ -108,7 +108,7 @@ export function MovesEditor({ value, onChange, label, addLabel, showGained }: Mo
             placeholder={t('character.moveTextPlaceholder')}
             aria-label={`${t('character.moveText')} ${index + 1}`}
             rows={4}
-            className="field-paper text-sm w-full font-body"
+            className="field-paper text-sm w-full font-body mb-0"
           />
           <button
             type="button"
@@ -121,7 +121,7 @@ export function MovesEditor({ value, onChange, label, addLabel, showGained }: Mo
             // do. Two unnamed rows both named "Delete move" was the common
             // case, not the edge one: every freshly added move starts unnamed.
             aria-label={`${t('common.delete')} ${move.name || t('character.moveFallbackName')} ${index + 1}`}
-            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-muted)] hover:text-[var(--danger)] hover:border-[var(--danger-border)] flex items-center justify-center"
+            className="absolute top-0 -right-2 w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-muted)] hover:text-[var(--danger)] hover:border-[var(--danger-border)] flex items-center justify-center"
           >
             <X size={12} />
           </button>

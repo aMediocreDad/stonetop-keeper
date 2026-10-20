@@ -220,7 +220,7 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
       // levitate" — but a grimoire card must not behave differently from the
       // product's other cards, and the app's consistency comes before my
       // metaphor.
-      className="group relative flex flex-col overflow-hidden card-paper card-accent-left p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(28,22,14,0.3)] focus-within:ring-2 focus-within:ring-[var(--border-focus)] focus-within:ring-inset"
+      className="group relative flex flex-col overflow-hidden card-paper card-accent-left p-5 transition-[translate,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(28,22,14,0.3)] focus-within:ring-2 focus-within:ring-[var(--border-focus)] focus-within:ring-inset"
       // --ripple-span: how far the ripple CARRIES, not the size of its rings
       // (that is fixed, cf. index.css — enlarging them gave three big circles,
       // which is no longer a ripple).
@@ -240,7 +240,7 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
       <Link
         to={`/character/${character.id}`}
         aria-label={character.name}
-        className="absolute inset-0 z-[1] rounded-[inherit] focus:outline-none"
+        className="absolute inset-0 z-[1] rounded-[inherit] focus:outline-hidden"
       />
 
       {/* Header: type stamp · name · marks (exit seal, GM eye) · arrow. The ↗
@@ -255,15 +255,15 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
           {/* Stamp and name NEVER separate: in a shrinkable row the stamp went
               off alone on its line as soon as the name wrapped to the next — a
               pictogram orphaned above the thing it marks. */}
-          <StampIcon src={stamp.src} size={24} className="flex-shrink-0" style={{ color: stamp.color }} />
+          <StampIcon src={stamp.src} size={24} className="shrink-0" style={{ color: stamp.color }} />
           {/* 20px on phones, 24px from sm up: at 390px a 24px name broke into
               "The" / "Foreigner", an orphaned article, and every failing case
               came down to 3-8px — so it is the type scale that decides them. */}
-          <h3 className="font-display text-xl sm:text-2xl font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-hover)] transition-colors leading-tight line-clamp-2 min-w-0">
+          <h3 className="font-display text-xl sm:text-2xl sm:leading-8 font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-hover)] transition-colors leading-tight line-clamp-2 min-w-0">
             {character.name}
           </h3>
           {gone && (
-            <span title={gone} className="flex-shrink-0 inline-flex items-center">
+            <span title={gone} className="shrink-0 inline-flex items-center">
               {/* 15px and --text-secondary, not 13px muted: at 13px the seal set
                   beside a 24px name read as a stray dot, not as a mark. "This
                   person is dead" is campaign information; it is entitled to its
@@ -273,7 +273,7 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
             </span>
           )}
           {character.gm_only && (
-            <span title={t('gm.badge')} className="flex-shrink-0 inline-flex items-center">
+            <span title={t('gm.badge')} className="shrink-0 inline-flex items-center">
               <EyeOff size={13} style={{ color: 'var(--gm-accent)' }} aria-hidden="true" />
               <span className="sr-only">{t('gm.badge')}</span>
             </span>
@@ -281,7 +281,7 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
         </div>
         <ArrowUpRight
           size={18}
-          className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors flex-shrink-0 mt-1.5"
+          className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors shrink-0 mt-1.5"
         />
       </div>
 
@@ -401,7 +401,7 @@ function CharacterCardBase({ character, match, showPlace = true }: CharacterCard
           >
             <span
               aria-hidden
-              className="w-2 h-2 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: locationColor }}
             />
             {locationName}

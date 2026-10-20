@@ -46,7 +46,7 @@ export function StateChip({
   return (
     <span
       title={title}
-      className="font-body text-[10px] uppercase tracking-[0.18em] font-semibold px-2 py-0.5 rounded border flex-shrink-0"
+      className="font-body text-[10px] uppercase tracking-[0.18em] font-semibold px-2 py-0.5 rounded border shrink-0"
       style={{ color: c.color, borderColor: c.border, backgroundColor: c.bg }}
     >
       {label}

@@ -106,7 +106,7 @@ export function LocationsManagerModal({ spaceId, onClose }: Props) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md card-paper p-6 focus:outline-none"
+          className="relative w-full max-w-md card-paper p-6 focus:outline-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -138,7 +138,7 @@ export function LocationsManagerModal({ spaceId, onClose }: Props) {
             return (
               <div
                 key={loc.id}
-                className="flex items-center gap-2 p-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card-alt)]/50"
+                className="flex items-center gap-2 p-2 rounded-lg border border-[var(--border-subtle)]"
               >
                 {isEditing ? (
                   <>
@@ -176,7 +176,7 @@ export function LocationsManagerModal({ spaceId, onClose }: Props) {
                   <>
                     <span
                       aria-hidden
-                      className="w-4 h-4 rounded border border-[var(--border-subtle)] flex-shrink-0"
+                      className="w-4 h-4 rounded border border-[var(--border-subtle)] shrink-0"
                       style={{ backgroundColor: loc.color }}
                     />
                     <span className="flex-1 text-sm font-body text-[var(--text-primary)] truncate">

@@ -58,7 +58,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="font-display font-bold text-[var(--text-primary)] text-5xl md:text-7xl mb-5 leading-[1.05] tracking-tight"
+            className="font-display font-bold text-[var(--text-primary)] text-5xl md:text-7xl mb-5 leading-[1.05] md:leading-none tracking-tight"
           >
             Ink &amp; Stone
           </motion.h1>
@@ -138,7 +138,7 @@ function ChoiceCard({
   return (
     <button
       onClick={onClick}
-      className="group text-left card-paper p-7 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(28,22,14,0.25)] transition-[transform,box-shadow] duration-200"
+      className="group text-left card-paper p-7 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(28,22,14,0.25)] transition-[translate,box-shadow] duration-200"
     >
       <h2 className="font-display text-2xl md:text-[1.7rem] font-semibold text-[var(--text-primary)] mb-2 leading-tight">
         {title}

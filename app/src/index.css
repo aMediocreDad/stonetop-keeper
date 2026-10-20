@@ -2,9 +2,37 @@
    registered before anything references the families. */
 @import './fonts.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Remplace l'ancien tailwind.config.js. Seule la clé `border` des couleurs
+   shadcn était consommée (par la règle de base `*` ci-dessous) : les treize
+   autres (background, primary, muted…) n'avaient aucun usage dans src/ et ne
+   sont pas reportées — les `--background`, `--primary`… restent des variables
+   de :root. L'échelle de rayons rebranche xs…xl sur --radius, comme avant.
+   `inline` : les utilitaires lisent la valeur telle quelle, sans passer par
+   une variable --radius-* intermédiaire. */
+@theme inline {
+  --color-border: hsl(var(--border));
+
+  --radius-xs: calc(var(--radius) - 6px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Interlignes de Tailwind 3 : une LONGUEUR (1.25rem pour text-sm…), que
+     les enfants héritent telle quelle. Tailwind 4 les passe en rapport sans
+     unité (1.25/0.875), recalculé sur la taille de chaque enfant — un badge
+     en text-[10px] dans un parent text-sm perdait ~6px de hauteur de ligne. */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+}
 
 /* =====================================================================
    Encre & Pierre — Design System
@@ -129,7 +157,34 @@
     --radius: 0.5rem;
   }
 
-  * { @apply border-border; }
+  /* Défauts du préflight de Tailwind 3 que le préflight de Tailwind 4 ne
+     reprend plus. Sans eux, `border` et `divide-*` peindraient en
+     currentColor (encre) au lieu du filet papier, les boutons perdraient
+     leur main, et les placeholders hériteraient d'un mélange 50 % du texte. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Safari : le champ de recherche reprend l'apparence d'un champ texte, donc
+     le style de .field-paper (même règle que le préflight de Tailwind 3). */
+  [type='search'] {
+    -webkit-appearance: textfield;
+    outline-offset: -2px;
+  }
 
   /* Anneau de focus unifié, même langage que les anneaux des chroniques :
      trait d'encre net, décollé de l'élément. Les contrôles à focus dédié
@@ -202,12 +257,18 @@
 /* =====================================================================
    Typographie & utilitaires
    ===================================================================== */
+/* `@utility` et non `@layer utilities` : seule une utility déclarée ainsi
+   accepte un préfixe de variante, et MapFormModal en pose un
+   (`file:font-body`). Les autres classes de la couche ci-dessous n'en
+   reçoivent aucun — elles restent en CSS natif, dont l'ordre de cascade est
+   celui qu'avait Tailwind 3. */
+@utility font-body {
+  font-family: 'Alegreya Sans', system-ui, -apple-system, sans-serif;
+}
+
 @layer utilities {
   .font-display {
     font-family: 'Playfair Display', Georgia, serif;
-  }
-  .font-body {
-    font-family: 'Alegreya Sans', system-ui, -apple-system, sans-serif;
   }
   /* Voix lecture explicite (longs textes : notes, chroniques, descriptions) */
   .font-reading {

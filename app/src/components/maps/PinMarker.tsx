@@ -38,7 +38,7 @@ export function pinIcon(pin: MapPin, characters: Character[], locations: Locatio
 const LABEL_CHIP_CLASS =
   // Fond OPAQUE + 11px medium : sur une illustration chargée, un fond
   // translucide laissait les traits de la carte brouiller le texte.
-  'absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[11px] leading-tight font-body font-medium px-2 py-0.5 rounded border border-[var(--border-paper)] bg-[var(--bg-card)] text-[var(--text-primary)] whitespace-nowrap max-w-[180px] truncate shadow-sm';
+  'absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[11px] leading-tight font-body font-medium px-2 py-0.5 rounded border border-[var(--border-paper)] bg-[var(--bg-card)] text-[var(--text-primary)] whitespace-nowrap max-w-[180px] truncate shadow-xs';
 
 /**
  * Marqueur d'épingle — taille écran constante (rendu sous le contre-scale de

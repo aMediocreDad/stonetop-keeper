@@ -131,7 +131,7 @@ export default function GmJournalPage() {
           <div className="flex items-start gap-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2 -ml-2 sm:mt-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+              className="p-2 -ml-2 sm:mt-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
               title={t('character.backToGrimoire')}
             >
               <ArrowLeft size={20} />
@@ -252,7 +252,7 @@ export default function GmJournalPage() {
 
           {/* Le sceau sépare deux blocs EMPILÉS ; entre deux colonnes il ne
               sépare plus rien. */}
-          <div className="seal-divider my-4 text-xs lg:hidden" aria-hidden>
+          <div className="seal-divider my-4 text-xs lg:hidden!" aria-hidden>
             ✦
           </div>
 

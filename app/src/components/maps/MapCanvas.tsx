@@ -459,7 +459,7 @@ export function MapCanvas({
           onClick={handleResetView}
           title={t('maps.resetView')}
           aria-label={t('maps.resetView')}
-          className="absolute top-3 right-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-alt)] transition-colors shadow-sm text-xs font-body"
+          className="absolute top-3 right-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-alt)] transition-colors shadow-xs text-xs font-body"
         >
           <RotateCcw size={16} />
           <span className="hidden sm:inline">{t('maps.resetView')}</span>

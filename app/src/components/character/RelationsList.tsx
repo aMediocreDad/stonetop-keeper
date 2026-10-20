@@ -268,7 +268,7 @@ export function RelationsList({
                         className="flex items-center gap-2 mb-2 text-sm"
                       >
                         <span
-                          className={`w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors ${
                             editGmOnly
                               ? 'bg-[var(--gm-accent)] border-[var(--gm-accent)]'
                               : 'border-[var(--border-paper)]'
@@ -408,7 +408,7 @@ export function RelationsList({
                 className="flex items-center gap-2 text-sm"
               >
                 <span
-                  className={`w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 transition-colors ${
+                  className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors ${
                     gmOnly
                       ? 'bg-[var(--gm-accent)] border-[var(--gm-accent)]'
                       : 'border-[var(--border-paper)]'

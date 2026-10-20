@@ -67,7 +67,7 @@ export function LocationPicker({
         <MapPin
           size={14}
           style={{ color: selected?.color ?? FALLBACK_LOCATION_COLOR }}
-          className="flex-shrink-0"
+          className="shrink-0"
         />
         <span
           className={`flex-1 truncate text-sm ${
@@ -77,7 +77,7 @@ export function LocationPicker({
           {selected?.name ?? effectivePlaceholder}
 
         </span>
-        <ChevronDown size={14} className="text-[var(--text-muted)] flex-shrink-0" />
+        <ChevronDown size={14} className="text-[var(--text-muted)] shrink-0" />
       </button>
 
       <AnimatePresence>
@@ -177,7 +177,7 @@ function PickerOption({
     >
       <span
         aria-hidden
-        className="w-3 h-3 rounded-sm border border-[var(--border-subtle)] flex-shrink-0"
+        className="w-3 h-3 rounded-sm border border-[var(--border-subtle)] shrink-0"
         style={{ backgroundColor: color }}
       />
       <span className="flex-1 truncate">{label}</span>

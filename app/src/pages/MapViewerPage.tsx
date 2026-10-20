@@ -204,14 +204,14 @@ export default function MapViewerPage() {
         >
           <button
             onClick={() => navigate('/maps')}
-            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
             title={t('character.backToGrimoire')}
           >
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0 flex-1">
             <p className="label-overline">{t('maps.overline')}</p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-none truncate inline-flex items-center gap-2">
+            <h1 className="font-display text-2xl sm:text-3xl sm:leading-9 font-bold text-[var(--text-primary)] leading-none truncate inline-flex items-center gap-2">
               {map.name}
               {map.gm_only && <GmBadge />}
             </h1>
@@ -226,11 +226,11 @@ export default function MapViewerPage() {
             return (
               <button
                 onClick={() => navigate(`/location/${linked.id}`)}
-                className="btn-outline text-sm flex-shrink-0"
+                className="btn-outline text-sm shrink-0"
                 title={linked.name}
               >
                 <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
                   style={{ backgroundColor: linked.color }}
                 />
                 {t('maps.sheetButton')}
@@ -282,7 +282,7 @@ export default function MapViewerPage() {
               type="button"
               onClick={() => setPlacing((v) => !v)}
               aria-pressed={placing}
-              className={`absolute top-3 left-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-[var(--border-paper)] transition-colors shadow-sm text-xs font-body ${
+              className={`absolute top-3 left-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-[var(--border-paper)] transition-colors shadow-xs text-xs font-body ${
                 placing
                   ? 'bg-[var(--bg-card-alt)] text-[var(--text-primary)]'
                   : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-alt)]'
@@ -294,7 +294,7 @@ export default function MapViewerPage() {
           )}
 
           {placing && (
-            <div className="absolute top-3 right-3 z-10 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)]/80 backdrop-blur border border-[var(--border-paper)] text-xs font-body text-[var(--text-muted)] pointer-events-none">
+            <div className="absolute top-3 right-3 z-10 px-2.5 py-1.5 rounded-md backdrop-blur-sm border border-[var(--border-paper)] text-xs font-body text-[var(--text-muted)] pointer-events-none">
               {t('maps.placePinHint')}
             </div>
           )}

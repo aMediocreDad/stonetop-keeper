@@ -103,7 +103,7 @@ export function CharacterForm({ onClose }: CharacterFormProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-lg card-paper p-8 focus:outline-none"
+          className="relative w-full max-w-lg card-paper p-8 focus:outline-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <button

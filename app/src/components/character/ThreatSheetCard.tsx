@@ -57,7 +57,7 @@ function CheckDot({
       aria-label={label}
       aria-disabled={!canEdit}
       onClick={() => (canEdit ? onToggle() : undefined)}
-      className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-colors ${
+      className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center shrink-0 transition-colors ${
         checked
           ? accent === 'gm'
             ? 'bg-[var(--gm-accent)] border-[var(--gm-accent)]'
@@ -130,7 +130,7 @@ function ChecklistSection({
                 onChange={(e) =>
                   onItems(items.map((p, i) => (i === index ? { ...p, text: e.target.value } : p)))
                 }
-                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5 text-sm font-body"
+                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5 text-sm font-body"
               />
             ) : (
               <span className="text-sm text-[var(--text-secondary)] font-body flex-1">
@@ -336,7 +336,7 @@ export function ThreatSheetCard({ value, onChange, editable, gmNotes }: ThreatSh
                     value={move}
                     aria-label={`${t('threat.gmMoves')} ${index + 1}`}
                     onChange={(e) => updateMoveText(index, e.target.value)}
-                    className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5 text-sm font-body"
+                    className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5 text-sm font-body"
                   />
                 ) : (
                   <span className="text-sm text-[var(--text-secondary)] font-body flex-1">

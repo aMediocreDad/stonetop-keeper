@@ -168,7 +168,7 @@ export function PinFormDialog({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full max-w-md card-paper p-8 focus:outline-none"
+          className="relative w-full max-w-md card-paper p-8 focus:outline-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -219,12 +219,12 @@ export function PinFormDialog({
               {isEdit ? (
                 // Lien figé en édition — pas de re-sélection possible.
                 <div className="field-paper flex items-center gap-2 opacity-70">
-                  {selectedItem && <ItemIcon item={selectedItem} size={14} className="flex-shrink-0" />}
+                  {selectedItem && <ItemIcon item={selectedItem} size={14} className="shrink-0" />}
                   <span className="truncate text-sm">{selectedItem?.label ?? '—'}</span>
                 </div>
               ) : selectedItem ? (
                 <div className="field-paper flex items-center gap-2">
-                  <ItemIcon item={selectedItem} size={14} className="flex-shrink-0" />
+                  <ItemIcon item={selectedItem} size={14} className="shrink-0" />
                   <span className="flex-1 truncate text-sm">{selectedItem.label}</span>
                   <button
                     type="button"
@@ -232,7 +232,7 @@ export function PinFormDialog({
                       setSelectedItem(null);
                       setQuery('');
                     }}
-                    className="flex-shrink-0 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    className="shrink-0 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     aria-label={t('common.close')}
                   >
                     <X size={14} />
@@ -258,7 +258,7 @@ export function PinFormDialog({
                           onClick={() => setSelectedItem(item)}
                           className="w-full text-left px-3 py-2 inline-flex items-center gap-2 text-sm font-body text-[var(--text-secondary)] hover:bg-[var(--bg-card-alt)] transition-colors"
                         >
-                          <ItemIcon item={item} size={14} className="flex-shrink-0" />
+                          <ItemIcon item={item} size={14} className="shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </button>
                       ))}

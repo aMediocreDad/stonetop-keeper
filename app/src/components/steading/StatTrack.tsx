@@ -66,7 +66,7 @@ export function StatTrack({ label, value, onChange, stamp }: StatTrackProps) {
             tabIndex={value === v ? 0 : -1}
             disabled={!canEdit}
             onClick={() => onChange(v)}
-            className={`w-9 h-9 rounded-full border text-[11px] font-medium font-body transition-[color,background-color,border-color,transform] disabled:cursor-not-allowed ${
+            className={`w-9 h-9 rounded-full border text-[11px] font-medium font-body transition-[color,background-color,border-color,scale] disabled:cursor-not-allowed ${
               value === v
                 ? 'bg-[var(--accent-primary)] text-[var(--text-inverse)] border-[var(--accent-primary)] scale-110'
                 : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-paper)] disabled:hover:bg-[var(--bg-card)] hover:bg-[var(--bg-card-alt)]'

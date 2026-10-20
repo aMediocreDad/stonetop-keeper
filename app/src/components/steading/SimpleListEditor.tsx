@@ -47,7 +47,7 @@ export function SimpleListEditor({ title, hint, items, onChange, children }: Sim
                 type="button"
                 aria-label={`${t('common.delete')} ${item}`}
                 onClick={() => onChange(items.filter((_, j) => j !== i))}
-                className="p-2 -m-1.5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 text-[var(--text-muted)] hover:text-[var(--danger)] transition-opacity flex-shrink-0"
+                className="p-2 -m-1.5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 text-[var(--text-muted)] hover:text-[var(--danger)] transition-opacity shrink-0"
               >
                 <X size={13} />
               </button>
@@ -68,7 +68,7 @@ export function SimpleListEditor({ title, hint, items, onChange, children }: Sim
             onBlur={add}
             placeholder={t('steading.addItemPlaceholder')}
             aria-label={`${t('common.add')} — ${title}`}
-            className="w-full bg-transparent border border-dashed border-[var(--border-field)] rounded-md pl-7 pr-2.5 py-1.5 text-sm font-body text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:italic outline-none transition-colors hover:border-[var(--text-muted)] focus:border-solid focus:border-[var(--border-focus)]"
+            className="w-full bg-transparent border border-dashed border-[var(--border-field)] rounded-md pl-7 pr-2.5 py-1.5 text-sm font-body text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:italic outline-hidden transition-colors hover:border-[var(--text-muted)] focus:border-solid focus:border-[var(--border-focus)]"
           />
         </div>
       )}

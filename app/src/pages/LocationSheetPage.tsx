@@ -191,7 +191,7 @@ export default function LocationSheetPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Rond de couverture du livret de bourgade (Jason Lutes, CC BY 4.0). */}
                   {location.steading && <StampIcon src={steadingCover} size={36} />}
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold text-[var(--text-primary)] leading-tight">
+                  <h1 className="font-display text-3xl sm:text-4xl sm:leading-10 font-bold text-[var(--text-primary)] leading-tight">
                     {location.name}
                   </h1>
                   {location.gm_only && <GmBadge />}
@@ -255,7 +255,7 @@ export default function LocationSheetPage() {
                 type="button"
                 onClick={() => setDraft((d) => ({ ...d, gmOnly: !d.gmOnly }))}
                 aria-pressed={draft.gmOnly}
-                className={`w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
+                className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
                   draft.gmOnly
                     ? 'bg-[var(--gm-accent)] border-[var(--gm-accent)]'
                     : 'border-[var(--border-paper)]'

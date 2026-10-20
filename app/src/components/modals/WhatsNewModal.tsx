@@ -55,7 +55,7 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
             <StampIcon
               src={stamp}
               size={34}
-              className="flex-shrink-0 mt-0.5"
+              className="shrink-0 mt-0.5"
               style={{ color: 'var(--text-secondary)' }}
             />
             <div className="min-w-0">

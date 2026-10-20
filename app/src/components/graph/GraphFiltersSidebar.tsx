@@ -318,20 +318,20 @@ function FilterRow({
       onClick={onClick}
       className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm font-body text-left transition-colors ${
         checked
-          ? 'text-[var(--text-primary)] bg-[var(--bg-card-alt)]/60'
+          ? 'text-[var(--text-primary)]'
           : 'text-[var(--text-muted)] opacity-60 hover:opacity-100'
       }`}
     >
       <span
         aria-hidden
-        className={`w-3 h-3 rounded flex-shrink-0 ${
+        className={`w-3 h-3 rounded shrink-0 ${
           ring ? 'ring-2 ring-offset-1 ring-[var(--graph-accent-pc)]' : ''
         }`}
         style={{ backgroundColor: color }}
       />
       <span className="flex-1 truncate">{label}</span>
       <span
-        className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0 ${
+        className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center shrink-0 ${
           checked
             ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)]'
             : 'border-[var(--border-paper)]'
