@@ -113,7 +113,7 @@ export function Modal({
               // `100vh` : la barre d'URL rétractable d'iOS fait mentir vh et
               // le bas du panneau passait dessous. Le `2rem` retranché reprend
               // le p-4 que le conteneur retrouve à partir de `sm`.
-              className={`relative w-full ${SIZES[size]} card-paper p-5 sm:p-8 focus:outline-none ${
+              className={`relative w-full ${SIZES[size]} card-paper p-5 sm:p-8 focus:outline-hidden ${
                 fillHeight
                   ? 'flex flex-col h-[100dvh] max-h-[100dvh] rounded-none pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl sm:pb-8'
                   : ''

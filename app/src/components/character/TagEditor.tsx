@@ -60,7 +60,7 @@ export function TagEditor({
             }
           }}
           placeholder={t('character.tagPlaceholder')}
-          className="bg-transparent outline-none w-20 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
+          className="bg-transparent outline-hidden w-20 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
         />
       </span>
     </div>

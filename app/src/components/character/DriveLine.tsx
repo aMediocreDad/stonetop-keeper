@@ -45,7 +45,7 @@ export function DriveLine({
         <StampIcon
           src={icon}
           size={14}
-          className="flex-shrink-0 mt-[0.2em]"
+          className="shrink-0 mt-[0.2em]"
           style={{ color: iconColor ?? 'var(--text-muted)' }}
         />
       )}

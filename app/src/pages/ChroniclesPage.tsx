@@ -75,20 +75,20 @@ export default function ChroniclesPage() {
         >
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
             title={t('character.backToGrimoire')}
           >
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0">
             <p className="label-overline">{t('chronicles.overline')}</p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-none truncate">
+            <h1 className="font-display text-2xl sm:text-3xl sm:leading-9 font-bold text-[var(--text-primary)] leading-none truncate">
               {t(view === 'wheel' ? 'chronicles.title' : 'chronicles.annalsTitle')}
             </h1>
           </div>
 
           <div
-            className="ml-auto flex flex-shrink-0 rounded-md border border-[var(--border-paper)] overflow-hidden"
+            className="ml-auto flex shrink-0 rounded-md border border-[var(--border-paper)] overflow-hidden"
             role="group"
             aria-label={t('chronicles.overline')}
           >

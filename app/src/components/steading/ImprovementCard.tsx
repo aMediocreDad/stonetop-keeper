@@ -30,7 +30,7 @@ export function ImprovementCard({
         <h4 className="font-display text-lg font-semibold text-[var(--text-primary)] leading-tight">
           {improvement.name}
         </h4>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {improvement.completed ? (
             <span className="font-body text-[10px] uppercase tracking-[0.15em] font-semibold px-1.5 py-0.5 rounded border bg-[var(--accent-primary)] text-[var(--text-inverse)] border-[var(--accent-primary)]">
               {t('steading.builtBadge')}
@@ -100,7 +100,7 @@ export function ImprovementCard({
               return (
                 <li key={i}>
                   <div className="flex items-start gap-2 select-none">
-                    <span className="flex gap-1 mt-1 flex-shrink-0">
+                    <span className="flex gap-1 mt-1 shrink-0">
                       {Array.from({ length: count }, (_, j) => (
                         <input
                           key={j}

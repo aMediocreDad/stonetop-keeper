@@ -208,14 +208,14 @@ export default function GraphViewPage() {
         >
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
             title={t('character.backToGrimoire')}
           >
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0">
             <p className="label-overline">{t('graph.overline')}</p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-none truncate">
+            <h1 className="font-display text-2xl sm:text-3xl sm:leading-9 font-bold text-[var(--text-primary)] leading-none truncate">
               {t('graph.title')}
             </h1>
 
@@ -233,7 +233,7 @@ export default function GraphViewPage() {
               marginRight: isDesktop && sidebarOpen ? 0 : -16,
             }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="hidden md:block overflow-hidden flex-shrink-0"
+            className="hidden md:block overflow-hidden shrink-0"
             aria-hidden={!isDesktop || !sidebarOpen}
             // `inert` retire aussi les champs/boutons du parcours clavier quand
             // le panneau est replié (width:0) — `aria-hidden` seul les laissait
@@ -253,7 +253,7 @@ export default function GraphViewPage() {
             <button
               type="button"
               onClick={() => setSidebarOpen((v) => !v)}
-              className="absolute top-3 left-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-alt)] transition-colors shadow-sm text-xs font-body"
+              className="absolute top-3 left-3 z-10 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-alt)] transition-colors shadow-xs text-xs font-body"
               aria-label={sidebarOpen ? t('graph.closePanel') : t('graph.openPanel')}
               title={sidebarOpen ? t('graph.closePanel') : t('graph.openPanel')}
 
@@ -270,7 +270,7 @@ export default function GraphViewPage() {
             </button>
 
             {/* Compteur flottant top-right */}
-            <div className="absolute top-3 right-3 z-10 px-2.5 py-1.5 rounded-md bg-[var(--bg-card)]/80 backdrop-blur border border-[var(--border-paper)] text-xs font-body text-[var(--text-muted)] pointer-events-none">
+            <div className="absolute top-3 right-3 z-10 px-2.5 py-1.5 rounded-md backdrop-blur-sm border border-[var(--border-paper)] text-xs font-body text-[var(--text-muted)] pointer-events-none">
               <span className="text-[var(--text-secondary)] font-medium">
                 {visibleCharacterIds.size}
               </span>

@@ -78,7 +78,7 @@ export function LedgerEventCard({ group, onUndo }: Props) {
         // server-side expectation for `group_intact` (see db.previewUndoEvent)
         // -- never for a single-event card, which has no group to verify.
         onClick={() => onUndo(oldest.event_id, count, count > 1 ? newest.event_id : undefined)}
-        className="btn-outline text-sm flex-shrink-0"
+        className="btn-outline text-sm shrink-0"
       >
         <Undo2 size={14} />
         {t('ledger.undo')}

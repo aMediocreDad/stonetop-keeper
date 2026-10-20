@@ -158,7 +158,7 @@ export function GraphNodePanel({
       tabIndex={-1}
     >
       {/* En-tête */}
-      <header className="px-4 pt-3 pb-3 border-b border-[var(--border-paper)]/70 relative">
+      <header className="px-4 pt-3 pb-3 border-b relative">
         <button
           type="button"
           onClick={onClose}
@@ -240,8 +240,8 @@ export function GraphNodePanel({
                             </span>
                             <ArrowUpRight
                               size={15}
-                              className="flex-shrink-0 text-[var(--text-muted)] opacity-0
-                                         group-hover:opacity-100 transition-opacity"
+                              className="shrink-0 text-[var(--text-muted)] opacity-0
+                                         group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity"
                             />
                           </button>
                         </li>

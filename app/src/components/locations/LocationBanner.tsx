@@ -161,7 +161,7 @@ export function LocationBanner({ spaceId }: LocationBannerProps) {
                   elles-mêmes des .card-paper — sur fond carte on empilait
                   carte-dans-carte façon rangée de métriques SaaS ; sur le
                   parchemin, elles se posent comme sur la fiche bourgade. */}
-              <div className="px-4 sm:px-5 pb-4 border-t border-[var(--border-paper)] pt-3 bg-[var(--bg-primary)]/60">
+              <div className="px-4 sm:px-5 pb-4 border-t border-[var(--border-paper)] pt-3">
                 {isSteading && shown.steading ? (
                   <SteadingQuickStats
                     steading={shown.steading}

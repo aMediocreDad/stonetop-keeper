@@ -26,7 +26,7 @@ export function Header() {
       <div className="px-4 sm:px-6 h-20 sm:h-24 md:h-28 lg:h-32 flex items-center justify-between max-w-6xl mx-auto gap-2">
         <button
           onClick={() => navigate(session ? '/dashboard' : '/')}
-          className="hover:opacity-80 transition-opacity flex-shrink-0"
+          className="hover:opacity-80 transition-opacity shrink-0"
           aria-label={t('header.home')}
         >
           <Logo size="sm" />
@@ -40,7 +40,7 @@ export function Header() {
                 onClick={handleLogout}
                 title={t('header.leave')}
                 aria-label={t('header.leave')}
-                className="ml-0.5 p-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+                className="ml-0.5 p-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
               >
                 <LogOut size={14} />
               </button>

@@ -44,5 +44,5 @@ export function ReadLine({ label, children }: { label: string; children: React.R
 }
 
 export const inputCls =
-  'flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5 text-sm font-body';
+  'flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5 text-sm font-body';
 export const selectCls = 'field-paper text-sm h-8 pl-2.5 w-auto';

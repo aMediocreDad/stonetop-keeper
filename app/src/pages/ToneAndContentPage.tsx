@@ -64,7 +64,7 @@ export default function ToneAndContentPage() {
           <div className="flex items-start gap-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2 -ml-2 sm:mt-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+              className="p-2 -ml-2 sm:mt-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
               title={t('character.backToGrimoire')}
             >
               <ArrowLeft size={20} />
@@ -90,7 +90,7 @@ export default function ToneAndContentPage() {
             {canEdit && (
               <button
                 onClick={() => setEditing((v) => !v)}
-                className={`${editing ? 'btn-ink' : 'btn-outline'} text-sm flex-shrink-0 sm:mt-1.5`}
+                className={`${editing ? 'btn-ink' : 'btn-outline'} text-sm shrink-0 sm:mt-1.5`}
               >
                 {editing ? <Check size={14} /> : <Pencil size={14} />}
                 {t(editing ? 'common.save' : 'common.edit')}

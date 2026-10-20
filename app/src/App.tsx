@@ -96,7 +96,7 @@ function RouteChrome({ children }: { children: ReactNode }) {
   }, [pathname, t]);
 
   return (
-    <div id="main-content" ref={containerRef} tabIndex={-1} className="outline-none">
+    <div id="main-content" ref={containerRef} tabIndex={-1} className="outline-hidden">
       {children}
     </div>
   );

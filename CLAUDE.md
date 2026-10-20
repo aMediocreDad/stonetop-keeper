@@ -18,7 +18,7 @@ Don't move either directory independently.
 
 ## Stack
 
-React 19 + TypeScript + Vite 7 + Tailwind 3 + shadcn/ui. TipTap editor,
+React 19 + TypeScript + Vite 8 + Tailwind 4 + shadcn/ui. TipTap editor,
 Sigma.js/graphology + d3-force graph, Zustand, React Router 7, Supabase
 (anon-auth invite-code spaces, RLS-heavy), Vitest, Playwright.
 

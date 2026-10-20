@@ -124,7 +124,7 @@ export function PinPopover({
         <button
           type="button"
           onClick={onClose}
-          className="flex-shrink-0 p-2 -m-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          className="shrink-0 p-2 -m-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           aria-label={t('common.close')}
         >
           <X size={14} />

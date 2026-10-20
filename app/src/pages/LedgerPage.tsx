@@ -73,13 +73,13 @@ export default function LedgerPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+              className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
               title={t('character.backToGrimoire')}
             >
               <ArrowLeft size={20} />
             </button>
             <div className="min-w-0">
-              <p className="label-overline [color:var(--gm-accent)]">{t('ledger.overline')}</p>
+              <p className="label-overline [color:var(--gm-accent)]!">{t('ledger.overline')}</p>
               <h1 className="font-display text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mt-2">
                 {t('ledger.title')}
               </h1>

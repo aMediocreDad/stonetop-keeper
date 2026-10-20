@@ -54,14 +54,14 @@ export default function MapsPage() {
         >
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
             title={t('character.backToGrimoire')}
           >
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0 flex-1">
             <p className="label-overline">{t('maps.overline')}</p>
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-[var(--text-primary)] leading-tight">
+            <h1 className="font-display text-3xl sm:text-4xl sm:leading-10 font-bold text-[var(--text-primary)] leading-tight">
               {t('maps.title')}
             </h1>
           </div>
@@ -102,7 +102,7 @@ export default function MapsPage() {
                   <Link
                     to={`/map/${m.id}`}
                     aria-label={m.name}
-                    className="absolute inset-0 z-[1] rounded-[inherit] focus:outline-none"
+                    className="absolute inset-0 z-[1] rounded-[inherit] focus:outline-hidden"
                   />
 
                   {m.thumb ? (
@@ -137,7 +137,7 @@ export default function MapsPage() {
                       <span className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-body text-[var(--text-muted)]">
                         <span
                           aria-hidden
-                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          className="w-2 h-2 rounded-full shrink-0"
                           style={{ backgroundColor: location.color }}
                         />
                         <span className="truncate">{location.name}</span>

@@ -684,7 +684,7 @@ export default function CharacterSheetPage() {
                     value={draft.name}
                     aria-label={t('characterForm.nameLabel')}
                     onChange={(e) => patchDraft({ name: e.target.value })}
-                    className="font-display text-3xl md:text-5xl font-bold text-[var(--text-primary)] bg-transparent border-b-2 border-[var(--border-focus)] focus:outline-none pb-1 max-w-full"
+                    className="font-display text-3xl md:text-5xl font-bold text-[var(--text-primary)] bg-transparent border-b-2 border-[var(--border-focus)] focus:outline-hidden pb-1 max-w-full"
                   />
                 ) : (
                   // The anti-clipping pb/-mb lives on an inner span: the h1 box keeps
@@ -1081,7 +1081,7 @@ export default function CharacterSheetPage() {
                             ? t('characterForm.groupRolePlaceholder')
                             : t('character.rolePlaceholder')
                         }
-                        className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5"
+                        className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5"
                       />
                     ) : (
                       <span className="text-[var(--text-secondary)]">{roleRest || '—'}</span>
@@ -1150,7 +1150,7 @@ export default function CharacterSheetPage() {
                                 ? t('character.requirementPlaceholder')
                                 : t('character.traitPlaceholder')
                             }
-                            className="bg-transparent outline-none w-24 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
+                            className="bg-transparent outline-hidden w-24 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
                           />
                         </span>
                       )}
@@ -1217,7 +1217,7 @@ export default function CharacterSheetPage() {
                                 value={block.interesting ?? ''}
                                 onChange={(e) => patchBlock('interesting', e.target.value)}
                                 placeholder={t('character.interestingPlaceholder')}
-                                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5"
+                                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5"
                               />
                             ) : (
                               <span className="text-[var(--text-secondary)]">{block.interesting || '—'}</span>
@@ -1231,7 +1231,7 @@ export default function CharacterSheetPage() {
                                 value={block.useful ?? ''}
                                 onChange={(e) => patchBlock('useful', e.target.value)}
                                 placeholder={t('character.usefulPlaceholder')}
-                                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5"
+                                className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5"
                               />
                             ) : (
                               <span className="text-[var(--text-secondary)]">{block.useful || '—'}</span>
@@ -1270,7 +1270,7 @@ export default function CharacterSheetPage() {
                           type="text"
                           value={draft.instinct}
                           onChange={(e) => patchDraft({ instinct: e.target.value })}
-                          className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-none pb-0.5"
+                          className="flex-1 bg-transparent border-b border-[var(--border-field)] focus:border-[var(--border-focus)] focus:outline-hidden pb-0.5"
                         />
                       </>
                     ) : (
@@ -1480,7 +1480,7 @@ export default function CharacterSheetPage() {
                               setConsequenceInput('');
                             }}
                             placeholder={t('character.consequencePlaceholder')}
-                            className="bg-transparent outline-none w-24 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
+                            className="bg-transparent outline-hidden w-24 text-[0.8125rem] placeholder:text-[var(--text-muted)]"
                           />
                         </span>
                       </div>
@@ -1764,7 +1764,7 @@ export function CheckBox({
       onClick={onToggle}
       aria-pressed={checked}
       aria-label={label}
-      className="w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer"
+      className="w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors cursor-pointer"
       style={
         checked
           ? { backgroundColor: accent, borderColor: accent }
@@ -1830,7 +1830,7 @@ function TracksEditor({
             // Same fallback-name shape as MovesEditor's delete button: a fresh,
             // unlabelled row must not read as a bare "Delete".
             aria-label={`${t('common.delete')} ${track.label || t('character.trackFallbackName')}`}
-            className="w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-muted)] hover:text-[var(--danger)] hover:border-[var(--danger-border)] flex items-center justify-center flex-shrink-0"
+            className="w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-paper)] text-[var(--text-muted)] hover:text-[var(--danger)] hover:border-[var(--danger-border)] flex items-center justify-center shrink-0"
           >
             <X size={12} />
           </button>

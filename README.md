@@ -43,7 +43,7 @@ gone its own way — see [Upstream](#upstream).
 
 ## Stack
 
-React 19 · TypeScript · Vite 7 · Tailwind 3 · shadcn/ui · Framer Motion ·
+React 19 · TypeScript · Vite 8 · Tailwind 4 · shadcn/ui · Framer Motion ·
 TipTap · Sigma.js + graphology · Zustand · React Router 7 ·
 **Supabase** (Postgres + Realtime) · **Cloudflare Workers** (hosting + the
 MCP server).
