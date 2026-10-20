@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Graph from 'graphology';
-import Sigma from 'sigma';
-import type { NodeHoverDrawingFunction, NodeLabelDrawingFunction } from 'sigma/rendering';
+import Sigma, { DEFAULT_STYLES } from 'sigma';
+import { layerFill } from 'sigma/rendering';
 import {
   forceSimulation,
   forceManyBody,
@@ -13,7 +13,7 @@ import {
   type SimulationNodeDatum,
   type SimulationLinkDatum,
 } from 'd3-force';
-import { createNodeBorderProgram } from '@sigma/node-border';
+import { layerBorder } from '@sigma/node-border';
 import {
   buildLocationColorMap,
   getCharacterColor,
@@ -61,10 +61,20 @@ interface SigmaGraphProps {
 }
 
 
-// Labels: centred UNDER the node with a paper-coloured halo, instead of the
-// white rectangle glued to the right that Sigma draws by default. The halo
-// (strokeText) keeps the text legible where it crosses edges.
+// Labels: centred UNDER the node, instead of the label glued to the right that
+// Sigma draws by default. Since Sigma 4 they are WebGL text (a glyph atlas) and
+// node labels take no text border, so the paper-coloured halo of Sigma 3 is
+// approximated by a soft label-only backdrop (see the node styles). Edge labels
+// sit on a paper-card chip instead (see the edge styles).
 const LABEL_MAX_CHARS = 22;
+const NODE_LABEL_FONT = "500 'Alegreya Sans', system-ui, sans-serif";
+// The face the glyph atlas bakes. Sigma rasterises it once per instance, so it
+// must be loaded BEFORE the renderer is built (see `fontsReady` below).
+const NODE_LABEL_FONT_LOAD = "500 13px 'Alegreya Sans'";
+// Edge labels: 700, the face Sigma 3's "600" actually resolved to (fonts.css
+// bundles 400, 500 and 700 only).
+const EDGE_LABEL_FONT = "700 'Alegreya Sans', system-ui, sans-serif";
+const EDGE_LABEL_FONT_LOAD = "700 12px 'Alegreya Sans'";
 
 // Canvas colours: read from the CSS tokens (--graph-*) at first render — the
 // canvas cannot resolve var() itself. Falls back to the historical values if a
@@ -77,6 +87,7 @@ const GRAPH_COLORS = {
   groupBorder: '#8C8279',
   gmAccent: '#6b4d7a',
   labelHalo: 'rgba(235, 229, 218, 0.9)', // --bg-primary at 90%
+  labelChip: '#F7F2E8', // --bg-card
 };
 let graphColorsLoaded = false;
 function loadGraphColors() {
@@ -90,39 +101,51 @@ function loadGraphColors() {
   GRAPH_COLORS.groupBorder = read('--graph-accent-group', GRAPH_COLORS.groupBorder);
   GRAPH_COLORS.gmAccent = read('--gm-accent', GRAPH_COLORS.gmAccent);
   GRAPH_COLORS.labelHalo = hexToRgba(read('--bg-primary', '#EBE5DA'), 0.9);
+  GRAPH_COLORS.labelChip = read('--bg-card', GRAPH_COLORS.labelChip);
   graphColorsLoaded = true;
 }
 
-const drawNodeLabel: NodeLabelDrawingFunction = (context, data, settings) => {
-  if (!data.label) return;
-  let label = data.label;
-  if (label.length > LABEL_MAX_CHARS) label = `${label.slice(0, LABEL_MAX_CHARS - 1)}…`;
+// An edge label's chip: the bond's colour mixed into the paper card, OPAQUE so
+// it hides the line under the text. A plain paper chip vanished against the
+// canvas (5/255 apart); the tint makes it visible and names the bond's family.
+const EDGE_CHIP_TINT = 0.18;
+function chipColor(baseHex: string): string {
+  const rgb = (hex: string) => {
+    const h = hex.replace('#', '');
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+  };
+  const base = rgb(baseHex);
+  const paper = rgb(GRAPH_COLORS.labelChip);
+  const mixed = paper.map((p, i) => Math.round(p + (base[i] - p) * EDGE_CHIP_TINT));
+  return `#${mixed.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
 
-  context.font = `${settings.labelWeight} ${settings.labelSize}px ${settings.labelFont}`;
-  context.textAlign = 'center';
-  context.textBaseline = 'top';
-  context.lineJoin = 'round';
-  context.lineWidth = 5;
-  context.strokeStyle = GRAPH_COLORS.labelHalo;
-  context.strokeText(label, data.x, data.y + data.size + 3);
-  context.fillStyle = GRAPH_COLORS.label;
-  context.fillText(label, data.x, data.y + data.size + 3);
-  // Sigma shares this 2D context with the other labels (edges, hover), which
-  // assume the default alignment — so we restore it.
-  context.textAlign = 'left';
-  context.textBaseline = 'alphabetic';
+// Sigma 4 lays an edge label along its edge, from source to target: on an edge
+// whose source sits to the right of its target, the text reads upside down.
+// This path draws the same straight line, but always walks it from its LEFT
+// end, so every label reads left to right. The graph is undirected and draws
+// no arrowheads, so the walking direction changes nothing else. "Left" is in
+// graph space, which matches the screen because camera rotation is disabled.
+const pathReadable = {
+  name: 'readable',
+  segments: 1,
+  glsl: `
+vec2 path_readable_position(float t, vec2 source, vec2 target) {
+  return source.x <= target.x ? mix(source, target, t) : mix(target, source, t);
+}
+
+float path_readable_length(vec2 source, vec2 target) {
+  return length(target - source);
+}
+`,
 };
 
-// On hover, Sigma draws a white frame with the label to the right by default —
-// inconsistent with our labels under the node. We keep the same rendering, just
-// underlined by a light halo around the node.
-const drawNodeHover: NodeHoverDrawingFunction = (context, data, settings) => {
-  context.beginPath();
-  context.arc(data.x, data.y, data.size + 4, 0, Math.PI * 2);
-  context.fillStyle = 'rgba(255, 255, 255, 0.45)';
-  context.fill();
-  drawNodeLabel(context, data, settings);
-};
+// Ring around PC / GM-only / empty-group nodes: a thin band in the node's
+// border colour, in screen pixels, around the location-coloured fill. Nodes
+// without a ring carry no `borderSize` and fall back to 0 — the layer then
+// stays out of the way and the plain fill shows.
+const NODE_BORDER_PX = 2;
 
 const EDGE_SIZE_BASE = 2.5;
 const EDGE_SIZE_FOCUS = 5;
@@ -179,6 +202,32 @@ export function SigmaGraph({
 
 
 
+  // Sigma 4 rasterises the label font into a glyph atlas ONCE per renderer: if
+  // Alegreya Sans is not loaded yet, the fallback face gets baked in and stays.
+  // So the renderer waits for the font (usually already cached from the rest of
+  // the app — the check is synchronous then). `document.fonts` is missing in
+  // jsdom, where there is nothing to wait for.
+  const [fontsReady, setFontsReady] = useState(
+    () =>
+      typeof document === 'undefined' ||
+      ((document.fonts?.check(NODE_LABEL_FONT_LOAD) ?? true) &&
+        (document.fonts?.check(EDGE_LABEL_FONT_LOAD) ?? true)),
+  );
+  useEffect(() => {
+    if (fontsReady) return;
+    let cancelled = false;
+    // A failed load (offline, blocked font) must not leave the graph blank:
+    // we build with the fallback face instead.
+    Promise.all([document.fonts.load(NODE_LABEL_FONT_LOAD), document.fonts.load(EDGE_LABEL_FONT_LOAD)])
+      .catch(() => undefined)
+      .then(() => {
+        if (!cancelled) setFontsReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fontsReady]);
+
   const forcesRef = useRef<ForceSettings>(forces);
   useEffect(() => {
     forcesRef.current = forces;
@@ -200,7 +249,7 @@ export function SigmaGraph({
 
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !fontsReady) return;
 
   
     if (sigmaRef.current) {
@@ -273,10 +322,14 @@ export function SigmaGraph({
         : isDiscovery
           ? DISCOVERY_NODE_COLOR
           : getCharacterColor(c, colorMap);
+      // GM suffix on the label (i18n gm.badge) — reused as-is in the canvas
+      // tooltip/label, since no React component is possible here.
+      const fullLabel = c.gm_only ? `${c.name} (${t('gm.badge')})` : c.name;
       const attrs: Record<string, unknown> = {
-        // GM suffix on the label (i18n gm.badge) — reused as-is in the canvas
-        // tooltip/label, since no React component is possible here.
-        label: c.gm_only ? `${c.name} (${t('gm.badge')})` : c.name,
+        label:
+          fullLabel.length > LABEL_MAX_CHARS
+            ? `${fullLabel.slice(0, LABEL_MAX_CHARS - 1)}…`
+            : fullLabel,
         x,
         y,
         size: nodeSize(degree.get(c.id) || 0, c.type),
@@ -287,7 +340,7 @@ export function SigmaGraph({
         groupColor: color,
       };
       if (isPJ) {
-        attrs.type = 'circle-border';
+        attrs.borderSize = NODE_BORDER_PX;
         attrs.borderColor = GRAPH_COLORS.pcBorder;
       } else if (isGroup) {
         if (memberCount > 0) {
@@ -299,21 +352,20 @@ export function SigmaGraph({
         } else {
           // A group with no members: a visible node with a grey border,
           // otherwise it would become unreachable.
-          attrs.type = 'circle-border';
+          attrs.borderSize = NODE_BORDER_PX;
           attrs.borderColor = GRAPH_COLORS.groupBorder;
         }
       }
       // GM marker: a border tinted --gm-accent, taking priority over the
       // PC/group border above (a gm_only node must always stand out). The
-      // `circle-border` program (@sigma/node-border) is already wired up for
-      // PC/group — we reuse it rather than falling back to a colour blend (the
-      // fallback planned for if borders were unsupported, which they are not
-      // here). Excluded for groups with members: their node is an invisible
-      // anchor (size 0.1, transparent colour) replaced on screen by the
-      // bubble — a border drawn on it would leave a stray plum dot at the
-      // centre.
+      // border layer (@sigma/node-border) is already wired up for PC/group —
+      // we reuse it rather than falling back to a colour blend (the fallback
+      // planned for if borders were unsupported, which they are not here).
+      // Excluded for groups with members: their node is an invisible anchor
+      // (size 0.1, transparent colour) replaced on screen by the bubble — a
+      // border drawn on it would leave a stray plum dot at the centre.
       if (c.gm_only && !(isGroup && memberCount > 0)) {
-        attrs.type = 'circle-border';
+        attrs.borderSize = NODE_BORDER_PX;
         attrs.borderColor = GRAPH_COLORS.gmAccent;
       }
       g.addNode(c.id, attrs);
@@ -340,6 +392,7 @@ export function SigmaGraph({
       g.addEdgeWithKey(key, r.from_character_id, r.to_character_id, {
         _label: detail,
         _baseColor: baseColor,
+        _chip: chipColor(baseColor),
         color: hexToRgba(baseColor, EDGE_ALPHA_BASE),
         size: EDGE_SIZE_BASE,
         relationType: r.relation_type,
@@ -383,6 +436,7 @@ export function SigmaGraph({
       g.addEdgeWithKey(key, c.id, leaderId, {
         _label: t('graph.follows'),
         _baseColor: GRAPH_COLORS.pcBorder,
+        _chip: chipColor(GRAPH_COLORS.pcBorder),
         color: hexToRgba(GRAPH_COLORS.pcBorder, EDGE_ALPHA_BASE),
         size: EDGE_SIZE_BASE,
       });
@@ -406,73 +460,147 @@ export function SigmaGraph({
 
     
     const renderer = new Sigma(g, containerRef.current, {
-      renderEdgeLabels: true,
-      defaultNodeColor: GRAPH_COLORS.nodeDefault,
-      defaultEdgeColor: GRAPH_COLORS.edgeDefault,
-      labelColor: { color: GRAPH_COLORS.label },
-      edgeLabelColor: { color: GRAPH_COLORS.label },
-      labelSize: 13,
-      edgeLabelSize: 12,
-      labelFont: "'Alegreya Sans', system-ui, sans-serif",
-      edgeLabelFont: "'Alegreya Sans', system-ui, sans-serif",
-      labelWeight: '500',
-      edgeLabelWeight: '600',
-      // High density + low threshold → names stay visible from the overview
-      // zoom instead of only appearing when zoomed right in.
-      labelDensity: 3,
-      labelGridCellSize: 80,
-      labelRenderedSizeThreshold: 3,
-      defaultDrawNodeLabel: drawNodeLabel,
-      defaultDrawNodeHover: drawNodeHover,
-      enableEdgeEvents: false,
-      nodeProgramClasses: {
-        'circle-border': createNodeBorderProgram({
-          borders: [
-            { size: { value: 2 }, color: { attribute: 'borderColor' } },
-            { size: { fill: true }, color: { attribute: 'color' } },
+      settings: {
+        renderEdgeLabels: true,
+        // Sigma 4 defaults to sizing nodes/edges in graph units, so they grow
+        // with the zoom; the sizes below are screen pixels, as in Sigma 3.
+        itemSizesReference: 'screen',
+        // A hovered node's edge labels anchor on ALL nodes, not only on those
+        // whose own label survived the label grid below — otherwise an edge to
+        // a culled neighbour would show no label.
+        edgeLabelAnchors: 'allNodes',
+        // High density + low threshold → names stay visible from the overview
+        // zoom instead of only appearing when zoomed right in.
+        labelDensity: 3,
+        labelGridCellSize: 80,
+        labelRenderedSizeThreshold: 3,
+        enableEdgeEvents: false,
+        // Right-drag rotation is on by default in Sigma 4. The app never offers
+        // it, and `pathReadable` relies on graph-space left being screen left.
+        enableCameraMouseRotation: false,
+      },
+      primitives: {
+        nodes: {
+          // Read from the graph attributes of each node (see the build above);
+          // a node without a ring has no `borderSize` and falls back to 0.
+          variables: {
+            borderSize: { type: 'number', default: 0 },
+            borderColor: { type: 'color', default: '#00000000' },
+          },
+          // ONE program for every node: the fill, then — when `borderSize` > 0
+          // — a ring of that many pixels in `borderColor`, over the fill.
+          layers: [
+            layerFill(),
+            layerBorder({
+              borders: [
+                {
+                  size: { attribute: 'borderSize', default: 0 },
+                  color: { attribute: 'borderColor' },
+                  mode: 'pixels',
+                },
+                { size: 0, color: { attribute: 'color' }, fill: true },
+              ],
+            }),
           ],
-        }),
+          label: { margin: 3 },
+        },
+        edges: {
+          paths: [pathReadable],
+        },
       },
-      nodeReducer: (key, attrs) => {
-        const out: Record<string, unknown> = { ...attrs };
+      styles: {
+        stage: { cursor: 'default' },
+        nodes: [
+          DEFAULT_STYLES.nodes,
+          {
+            color: { attribute: 'color', defaultValue: GRAPH_COLORS.nodeDefault },
+            cursor: 'pointer',
+            labelPosition: 'below',
+            labelSize: 13,
+            labelFont: NODE_LABEL_FONT,
+            labelColor: GRAPH_COLORS.label,
+            // At rest, the backdrop stands in for Sigma 3's label halo: a
+            // paper-coloured patch behind the label alone, its edge feathered
+            // by a shadow of the same colour so it reads as a glow, not a box.
+            backdropVisibility: 'visible',
+            backdropArea: 'label',
+            backdropColor: GRAPH_COLORS.labelHalo,
+            backdropShadowColor: GRAPH_COLORS.labelHalo,
+            backdropShadowBlur: 6,
+            backdropPadding: 1,
+            backdropCornerRadius: 4,
+          },
+          // On hover it becomes what Sigma 3's hover drew: a pale disc around
+          // the node, now spanning the label too since one backdrop serves both.
+          {
+            whenState: 'isHovered',
+            then: {
+              backdropArea: 'both',
+              backdropColor: 'rgba(255, 255, 255, 0.45)',
+              backdropShadowColor: 'rgba(0, 0, 0, 0)',
+              backdropShadowBlur: 0,
+              backdropPadding: 4,
+            },
+          },
+        ],
+        edges: [
+          DEFAULT_STYLES.edges,
+          {
+            color: { attribute: 'color', defaultValue: GRAPH_COLORS.edgeDefault },
+            path: 'readable',
+            // BESIDE the line, on a tinted chip (see `chipColor`). Not on it:
+            // Sigma 4 paints the line over the label background, so a chip on
+            // the line reads as struck-through text.
+            labelPosition: 'above',
+            labelBackgroundColor: { attribute: '_chip', defaultValue: GRAPH_COLORS.labelChip },
+            labelBackgroundPadding: 3,
+            labelSize: 12,
+            labelFont: EDGE_LABEL_FONT,
+            labelColor: GRAPH_COLORS.label,
+          },
+        ],
+      },
+      nodeReducer: (key, _data, attrs) => {
         // Invisible group anchors: nothing to fade.
-        if (typeof attrs.color === 'string' && attrs.color.startsWith('rgba')) return out;
+        if (typeof attrs.color === 'string' && attrs.color.startsWith('rgba')) return {};
         const hovered = hoveredRef.current;
-        if (hovered) {
-          const focus = key === hovered || adjacencyRef.current.get(hovered)?.has(key);
-          if (!focus) {
-            out.color = hexToRgba((attrs.color as string) || GRAPH_COLORS.nodeDefault, NODE_ALPHA_FADE);
-            out.label = '';
-          } else if (key === hovered) {
-            out.zIndex = 2;
-          }
-        }
-        return out;
+        if (!hovered) return {};
+        const focus = key === hovered || adjacencyRef.current.get(hovered)?.has(key);
+        if (!focus) return { opacity: NODE_ALPHA_FADE, label: '' };
+        // The focused node sits above its neighbours with its label forced on —
+        // a mobile selection is not a Sigma hover, so it gets neither for free.
+        if (key === hovered) return { depth: 'topNodes', labelVisibility: 'visible' };
+        return {};
       },
-      edgeReducer: (key, attrs) => {
-        const out: Record<string, unknown> = { ...attrs };
+      edgeReducer: (key, _data, attrs) => {
+        // The membership edge stays in graphology but must not appear on
+        // screen: the bubble is what makes it visible.
+        if (attrs.hidden) return { visibility: 'hidden' };
         const hovered = hoveredRef.current;
         const baseColor = (attrs._baseColor as string) || GRAPH_COLORS.edgeDefault;
         if (hovered) {
           const [s, t] = g.extremities(key);
           const involves = s === hovered || t === hovered;
           if (involves) {
-            out.color = hexToRgba(baseColor, 1);
-            out.size = EDGE_SIZE_FOCUS;
-            out.label = (attrs._label as string) || '';
-            out.forceLabel = true;
-            out.zIndex = 3;
-          } else {
-            out.color = hexToRgba(baseColor, EDGE_ALPHA_FADE);
-            out.size = EDGE_SIZE_BASE * 0.5;
-            out.label = '';
+            return {
+              color: hexToRgba(baseColor, 1),
+              size: EDGE_SIZE_FOCUS,
+              label: (attrs._label as string) || '',
+              labelVisibility: 'visible',
+              depth: 'topEdges',
+            };
           }
-        } else {
-          out.color = hexToRgba(baseColor, EDGE_ALPHA_BASE);
-          out.size = EDGE_SIZE_BASE;
-          out.label = '';
+          return {
+            color: hexToRgba(baseColor, EDGE_ALPHA_FADE),
+            size: EDGE_SIZE_BASE * 0.5,
+            label: '',
+          };
         }
-        return out;
+        return {
+          color: hexToRgba(baseColor, EDGE_ALPHA_BASE),
+          size: EDGE_SIZE_BASE,
+          label: '',
+        };
       },
     });
 
@@ -767,11 +895,10 @@ export function SigmaGraph({
     renderer.on('enterNode', ({ node }) => {
       hoveredRef.current = node;
       renderer.refresh();
-      if (containerRef.current) containerRef.current.style.cursor = 'pointer';
     });
 
+    // The cursor over a node is Sigma's own (the `cursor` node style above).
     renderer.on('leaveNode', () => {
-      if (containerRef.current) containerRef.current.style.cursor = 'default';
       // Locked selection (mobile tap, panel open): we do not clear it on a
       // stray leaveNode, otherwise the highlight vanishes while the panel is
       // still showing.
@@ -880,7 +1007,7 @@ export function SigmaGraph({
     // -------------------------------------------------------------------
     // Touch support — a complete bypass of Sigma's TouchCaptor.
     //
-    // Sigma v3's event API (`touchmovebody`, `touchdown`, …) is unreliable
+    // Sigma's touch event API (`touchmovebody`, `touchdown`, …) is unreliable
     // across builds: variable payloads, events sometimes not emitted. So we
     // wire the native DOM events straight onto the canvas container. Upsides:
     //   - native `touchmove` fires every frame, unfiltered
@@ -1050,6 +1177,7 @@ export function SigmaGraph({
     visibleRelationTypes,
     navigate,
     t,
+    fontsReady,
   ]);
 
  
