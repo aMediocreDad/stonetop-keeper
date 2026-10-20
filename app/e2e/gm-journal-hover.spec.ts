@@ -62,7 +62,18 @@ test('a wonder row only reveals its remove button while the pointer is inside th
   };
 
   const assertRow = async (i: number, label: string) => {
-    const box = await boxOf(i);
+    // The page's sections slide up 10px as they enter. Measured mid-slide, the
+    // row then rises under a pointer meant to sit 4px above it, so wait for
+    // two readings 100ms apart to agree.
+    let box = await boxOf(i);
+    await expect
+      .poll(async () => {
+        const prev = box.y;
+        await page.waitForTimeout(100);
+        box = await boxOf(i);
+        return box.y === prev;
+      })
+      .toBe(true);
     const cx = box.x + box.w - 12; // over the remove button, inside the row
     const cy = box.y + box.h / 2;
 
