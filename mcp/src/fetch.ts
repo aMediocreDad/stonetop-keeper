@@ -176,6 +176,7 @@ const WRITES = [
   'create_character',
   'update_character',
   'create_relation',
+  'create_location',
   'update_location',
   'save_timeline_entry',
   'save_gm_timeline_entry',

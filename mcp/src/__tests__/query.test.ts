@@ -90,3 +90,36 @@ describe('searching the bench', () => {
     expect(narrowed.every((h) => h.kind === 'discovery')).toBe(true);
   });
 });
+
+describe('searching the GM journal', () => {
+  const journalGraph = (gmJournal: RawCampaignData['gmJournal']) =>
+    traverse({
+      characters: [], locations: [], relations: [], timeline: null, maps: [], mapPins: [],
+      gmJournal,
+    });
+
+  const journal: RawCampaignData['gmJournal'] = {
+    id: 'j1', space_id: 's1', updated_at: '',
+    notes: '<p>The <strong>salt road</strong> closes in winter.</p>',
+    wonders: [
+      { id: 'w1', text: 'Who cut the ferry rope?', resolved: false, created_at: 't' },
+      { id: 'w2', text: 'Why is the mill silent?', resolved: true, resolution: 'The miller left for the salt road.', created_at: 't' },
+    ],
+  };
+
+  it('finds journal notes and wonders, resolution text included', () => {
+    const hits = searchGraph(journalGraph(journal), 'salt road');
+    expect(hits.map((h) => h.kind)).toEqual(['journal', 'wonder']);
+    expect(hits[1].id).toBe('wonder 2');
+    expect(hits[1].name).toContain('(answered)');
+  });
+
+  it('can be narrowed to wonders alone', () => {
+    const hits = searchGraph(journalGraph(journal), 'ferry', ['wonder']);
+    expect(hits).toEqual([expect.objectContaining({ kind: 'wonder', id: 'wonder 1' })]);
+  });
+
+  it('finds nothing when the token sees no journal', () => {
+    expect(searchGraph(journalGraph(null), 'salt road')).toEqual([]);
+  });
+});

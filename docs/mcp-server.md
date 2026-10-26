@@ -18,11 +18,13 @@ described here).
   Function). GM tokens also get the journal: open *I wonder…* questions ride
   in the default brief; the free-form GM notes are the opt-in `journal`
   section.
-- Ten write tools: `save_chronicle_entry`, `create_character`,
-  `update_character`, `create_relation`, `update_location`, `update_steading`,
-  `tick_portent`, `add_wonder`, `resolve_wonder`, `append_gm_journal`. They add
-  and amend only — **no tool deletes anything, and undo stays in the app's
-  Ledger.**
+- Twelve write tools: `save_chronicle_entry`, `create_character`,
+  `update_character`, `create_relation`, `create_location`, `update_location`,
+  `update_steading`, `tick_portent`, `set_threat_sheet`, `add_wonder`,
+  `resolve_wonder`, `append_gm_journal`. They add and amend only — **no tool
+  deletes anything, and undo stays in the app's Ledger.** A whole-field
+  replace returns the text it replaced, so a mistaken overwrite is recoverable
+  from the response alone.
 - Runs as a Worker script on the **existing** deployment. `wrangler.jsonc` sets
   `main` plus `assets.run_worker_first: ["/mcp", "/mcp/*"]`, so only those paths
   reach the Worker; the SPA keeps being served straight from static assets.

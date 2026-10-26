@@ -160,6 +160,9 @@ beforeEach(() => {
           data: { id: (params as unknown as { p_id: string }).p_id },
           error: null,
         });
+      case 'create_location':
+        writes.push({ name, params });
+        return Promise.resolve({ data: { id: 'l-new' }, error: null });
       case 'create_relation':
         writes.push({ name, params });
         return Promise.resolve({ data: { id: 'r-new' }, error: null });
@@ -342,9 +345,11 @@ describe('mcp protocol', () => {
       'create_character',
       'update_character',
       'create_relation',
+      'create_location',
       'update_location',
       'update_steading',
       'tick_portent',
+      'set_threat_sheet',
       'add_wonder',
       'resolve_wonder',
       'append_gm_journal',
@@ -585,6 +590,23 @@ describe('write tools', () => {
     expect(params.p_entry.title).toBe('New title');
   });
 
+  it('returns the replaced season text, so a replace is always recoverable', async () => {
+    const { body } = await call('tools/call', {
+      name: 'save_chronicle_entry',
+      arguments: { body: 'Rewritten.', mode: 'replace' },
+    });
+    expect(body).toContain('Prior season text (now replaced)');
+    expect(body).toContain('Dusk.');
+  });
+
+  it('does not echo prior text on an append', async () => {
+    const { body } = await call('tools/call', {
+      name: 'save_chronicle_entry',
+      arguments: { body: 'More.' },
+    });
+    expect(body).not.toContain('Prior');
+  });
+
   it('turns a player token hitting the GM strand into a readable role error', async () => {
     const { body } = await call(
       'tools/call',
@@ -657,6 +679,26 @@ describe('write tools', () => {
     const params = writes[0].params as { p_id: string; p_data: Record<string, unknown> };
     expect(params.p_id).toBe('c1');
     expect(params.p_data).toEqual({ notes: '<p>Carries the spark.</p><p>Now doubts aloud.</p>' });
+  });
+
+  it('returns the replaced notes and gm_notes as Markdown', async () => {
+    const { body } = await call('tools/call', {
+      name: 'update_character',
+      arguments: { name_or_id: 'Bhael', notes: 'Fresh start.', gm_notes: 'New secret.' },
+    });
+    expect(body).toContain('Prior notes (now replaced)');
+    expect(body).toContain('Carries the spark.');
+    expect(body).toContain('Prior gm_notes (now replaced)');
+    expect(body).toContain('Doubts the goddess.');
+    expect(body).not.toContain('<p>');
+  });
+
+  it('says nothing about prior text when the replaced field was empty', async () => {
+    const { body } = await call('tools/call', {
+      name: 'update_character',
+      arguments: { name_or_id: 'Rula', notes: 'Keeps the ledger.' },
+    });
+    expect(body).not.toContain('Prior');
   });
 
   it('patches instinct', async () => {
@@ -851,6 +893,198 @@ describe('write tools', () => {
       { text: 'Cattle vanish', done: true },
     ]);
     expect(threat.instinct).toBe('hollow out the hill');
+  });
+
+  it('creates a location with no GM keys unless given', async () => {
+    const { body } = await call('tools/call', {
+      name: 'create_location',
+      arguments: { name: 'The Ford', description: 'shallow crossing', notes: 'Floods in spring.' },
+    });
+    expect(body).toContain('Created location');
+    expect(body).toContain('(id: l-new)');
+    expect(writes).toHaveLength(1);
+    expect(writes[0].name).toBe('create_location');
+    const data = (writes[0].params as { p_data: Record<string, unknown> }).p_data;
+    expect(data).toEqual({
+      name: 'The Ford',
+      description: 'shallow crossing',
+      notes: '<p>Floods in spring.</p>',
+      tags: [],
+    });
+  });
+
+  it('sends GM keys on create_location when given', async () => {
+    await call('tools/call', {
+      name: 'create_location',
+      arguments: { name: 'The Ford', gm_only: true, gm_notes: 'A shrine under the water.' },
+    });
+    const data = (writes[0].params as { p_data: Record<string, unknown> }).p_data;
+    expect(data.gm_only).toBe(true);
+    expect(data.gm_notes).toBe('<p>A shrine under the water.</p>');
+  });
+
+  it('refuses to create a location whose name already exists', async () => {
+    const { body } = await call('tools/call', {
+      name: 'create_location',
+      arguments: { name: 'stonetop' },
+    });
+    expect(body).toContain('"isError":true');
+    expect(body).toContain('update_location');
+    expect(writes).toHaveLength(0);
+  });
+
+  it('returns the replaced location gm_notes', async () => {
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation((name: string, params: { p_token: string }) =>
+      name === 'get_locations'
+        ? Promise.resolve({
+            data: [{ id: 'l2', name: 'The Ford', description: '', gm_only: false, gm_notes: '<p>Old secret.</p>' }],
+            error: null,
+          })
+        : base(name, params),
+    );
+    const { body } = await call('tools/call', {
+      name: 'update_location',
+      arguments: { name_or_id: 'The Ford', gm_notes: 'New secret.' },
+    });
+    expect(body).toContain('Prior gm_notes (now replaced)');
+    expect(body).toContain('Old secret.');
+  });
+
+  describe('set_threat_sheet', () => {
+    function sheet() {
+      return (writes[0].params as { p_data: { threat: Record<string, unknown> } }).p_data.threat;
+    }
+
+    it('replaces portents, keeping the tick of a portent whose text is unchanged', async () => {
+      const { body } = await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: {
+          threat: 'Things Below',
+          portents: [{ text: 'Cattle vanish' }, { text: 'Lamps gutter' }, { text: 'The well sours', done: true }],
+        },
+      });
+      expect(body).not.toContain('"isError":true');
+      expect(writes).toHaveLength(1);
+      expect(writes[0].name).toBe('update_character');
+      expect(sheet().portents).toEqual([
+        { text: 'Cattle vanish', done: true },
+        { text: 'Lamps gutter', done: false },
+        { text: 'The well sours', done: true },
+      ]);
+      // Untouched parts of the sheet survive, legacy instinct included.
+      expect(sheet().instinct).toBe('hollow out the hill');
+      expect((sheet().impendingDoom as { text: string }).text).toBe('<p>The hill collapses</p>');
+      expect(body).toContain('Prior portents');
+      expect(body).toContain('1. The well sours');
+    });
+
+    it('lets an explicit done override the carried tick', async () => {
+      await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'Things Below', portents: [{ text: 'Cattle vanish', done: false }] },
+      });
+      expect(sheet().portents).toEqual([{ text: 'Cattle vanish', done: false }]);
+    });
+
+    it('stores the doom as HTML and keeps its tick only when the text is unchanged', async () => {
+      const base = rpc.getMockImplementation()!;
+      rpc.mockImplementation((name: string, params: { p_token: string }) =>
+        name === 'get_characters'
+          ? Promise.resolve({
+              data: [
+                {
+                  id: 't1', name: 'The Tide', type: 'MENACE', role: '', notes: '', traits: [], tags: [],
+                  gm_only: false,
+                  threat: { portents: [], impendingDoom: { text: '<p>The coast drowns</p>', done: true }, stakes: [], gmMoves: [] },
+                },
+              ],
+              error: null,
+            })
+          : base(name, params),
+      );
+      await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'The Tide', impending_doom: 'The coast drowns' },
+      });
+      expect(sheet().impendingDoom).toEqual({ text: '<p>The coast drowns</p>', done: true });
+
+      writes = [];
+      const { body } = await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'The Tide', impending_doom: 'The <harbour> burns' },
+      });
+      expect(sheet().impendingDoom).toEqual({ text: '<p>The &lt;harbour&gt; burns</p>', done: false });
+      expect(body).toContain('Prior impending doom: The coast drowns (done)');
+    });
+
+    it('converts legacy HTML stakes and merges ticks into the new list', async () => {
+      await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: {
+          threat: 'Things Below',
+          stakes: [{ text: 'Who holds the Old Wall?' }, { text: 'Does the spring run dry?' }],
+          gm_moves: ['Collapse a tunnel', '  '],
+        },
+      });
+      expect(sheet().stakes).toEqual([
+        { text: 'Who holds the Old Wall?', done: false },
+        { text: 'Does the spring run dry?', done: false },
+      ]);
+      expect(sheet().gmMoves).toEqual(['Collapse a tunnel']);
+      // Portents were not passed, so they are written back unchanged.
+      expect(sheet().portents).toEqual([
+        { text: 'The well sours', done: false },
+        { text: 'Cattle vanish', done: true },
+      ]);
+    });
+
+    it('gives a MENACE with no sheet a fresh one', async () => {
+      const base = rpc.getMockImplementation()!;
+      rpc.mockImplementation((name: string, params: { p_token: string }) =>
+        name === 'get_characters'
+          ? Promise.resolve({
+              data: [
+                { id: 't2', name: 'The Blight', type: 'MENACE', role: '', notes: '', traits: [], tags: [], gm_only: false, threat: null },
+              ],
+              error: null,
+            })
+          : base(name, params),
+      );
+      const { body } = await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'The Blight', portents: [{ text: 'Leaves spot' }] },
+      });
+      expect(body).not.toContain('"isError":true');
+      expect(body).not.toContain('Prior');
+      expect(sheet()).toEqual({
+        instinct: '',
+        portents: [{ text: 'Leaves spot', done: false }],
+        impendingDoom: { text: '', done: false },
+        stakes: [],
+        gmMoves: [],
+        type: null,
+      });
+    });
+
+    it('refuses a character that is not a threat', async () => {
+      const { body } = await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'Rula', portents: [{ text: 'x' }] },
+      });
+      expect(body).toContain('"isError":true');
+      expect(body).toContain('not a threat');
+      expect(writes).toHaveLength(0);
+    });
+
+    it('refuses a call that changes nothing', async () => {
+      const { body } = await call('tools/call', {
+        name: 'set_threat_sheet',
+        arguments: { threat: 'Things Below' },
+      });
+      expect(body).toContain('"isError":true');
+      expect(writes).toHaveLength(0);
+    });
   });
 
   it('invalidates the snapshot cache after a write, so the next read refetches', async () => {

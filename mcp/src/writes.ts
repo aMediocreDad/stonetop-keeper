@@ -1,13 +1,20 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { markdownToHtml, htmlToMarkdown, htmlToText } from '../../app/src/lib/shared';
+import { markdownToHtml, htmlToMarkdown, htmlToText, textToHtml } from '../../app/src/lib/shared';
 import { traverse } from '../../app/src/lib/shared';
 import type { CampaignGraph, RawCampaignData } from '../../app/src/lib/shared';
 import { RELATION_TYPES } from '../../app/src/lib/shared';
 import { CHARACTER_TYPES } from '../../app/src/lib/shared';
 import { normalizeSeason, storedRev } from '../../app/src/lib/shared';
 import { normalizeThreatSheet } from '../../app/src/lib/shared';
-import type { GmJournal, Season, Steading, ThreatSheet, Timeline, Wonder } from '../../app/src/lib/shared';
+import type {
+  GmJournal,
+  Season,
+  Steading,
+  ThreatSheet,
+  Timeline,
+  Wonder,
+} from '../../app/src/lib/shared';
 import { WriteRpcError, invalidate, loadCampaign, writeRpc, type Env } from './fetch';
 import { resolveEntityId, type ResolvePool } from './query';
 import { fail, guard, text, type ToolResult } from './result';
@@ -138,14 +145,54 @@ function resolveOrFail(
   };
 }
 
+type ThreatPortent = ThreatSheet['portents'][number];
+
 const UNDO_NOTE = 'Every write lands in the ledger; a GM can undo it from the app (Ledger page).';
+
+/**
+ * Le texte qu'un remplacement complet vient d'écraser, rendu au modèle en
+ * Markdown (même raison que `parseConflictEntry` : le renvoyer tel quel doit
+ * tout restaurer). Rien si le champ était vide — il n'y a rien à perdre.
+ */
+function priorText(label: string, html: string | null | undefined): string {
+  const md = htmlToMarkdown(html ?? '').trim();
+  return md ? `\n\nPrior ${label} (now replaced):\n${md}` : '';
+}
+
+/**
+ * Liste cochable (présages, enjeux) soumise en entier : une case dont le
+ * texte existe déjà garde sa coche, sauf `done` explicite. Même contrat que
+ * `buildTraits` — un remplacement ne doit jamais effacer ce que la table a coché.
+ */
+function mergeTicks(
+  incoming: { text: string; done?: boolean }[],
+  current: ThreatPortent[],
+): ThreatPortent[] {
+  const wasDone = new Map(current.map((p) => [p.text.trim(), p.done]));
+  const seen = new Set<string>();
+  const result: ThreatPortent[] = [];
+  for (const item of incoming) {
+    const text = item.text.trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    result.push({ text, done: item.done ?? wasDone.get(text) ?? false });
+  }
+  return result;
+}
+
+function tickList(items: ThreatPortent[], numbered: boolean): string {
+  if (!items.length) return '(none)';
+  return items
+    .map((p, i) => `${numbered ? `${i + 1}.` : '-'} ${p.text}${p.done ? ' (done)' : ''}`)
+    .join('\n');
+}
 
 export function registerWriteTools(server: McpServer, env: Env, token: string): void {
   server.registerTool(
     'save_chronicle_entry',
     {
       description:
-        'Write a chronicle (timeline) season entry — the post-session recap. strand "player" is the shared strand (writing it moves the current-season marker, as in the app); "gm" is the GM-only margin strand. Defaults to the current year/season and to appending after any existing text; mode "replace" overwrites the body. Markdown: blank lines separate paragraphs, and **bold**, *italic*, lists, ## headings, > quotes and [links](url) all render.',
+        'Write a chronicle (timeline) season entry — the post-session recap. strand "player" is the shared strand (writing it moves the current-season marker, as in the app); "gm" is the GM-only margin strand. Defaults to the current year/season and to appending after any existing text; mode "replace" overwrites the body, and the response carries the replaced text. Markdown: blank lines separate paragraphs, and **bold**, *italic*, lists, ## headings, > quotes and [links](url) all render.',
       inputSchema: z.object({
         body: z.string().min(1),
         strand: z.enum(['player', 'gm']).optional(),
@@ -184,7 +231,8 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
       );
       return text(
         `Saved Year ${targetYear}, ${targetSeason} [${strand}]` +
-          `${entryTitle ? ` — "${entryTitle}"` : ''} (${mode}). ${UNDO_NOTE}`,
+          `${entryTitle ? ` — "${entryTitle}"` : ''} (${mode}). ${UNDO_NOTE}` +
+          (mode === 'replace' ? priorText('season text', current.body) : ''),
       );
     }),
   );
@@ -193,7 +241,7 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
     'create_character',
     {
       description:
-        'Add a character to the wiki: an NPC the party just met, a group, a threat, or a discovery — something there is to find. type defaults to NPC. type: "PJ" (player character), "PNJ" (NPC), "GROUPE" (a group or faction), "MENACE" (a threat), "DISCOVERY" (something to find). The codes are French because the stored column values are; do not translate them. role: read according to `type` — the playbook for a PJ, the occupation for a PNJ, the role in the group for a GROUPE, and for a DISCOVERY the KIND, one of: clue, revelation, site, encounter, opportunity, artifact, arcanum (lowercase, English). A MENACE has none. Leaving role empty still stores the discovery unfiled, but the sheet\'s kind picker no longer offers that state: opening such a row seeds it with the first kind and the next save files it there. Name the kind rather than relying on that. A `revelation` is the thing a clue points at — file the conclusion the party can reach as its own entry, then point clues at it with create_relation\'s `leads-to`. location accepts a name or id. notes/gm_notes are Markdown (blank lines separate paragraphs; **bold**, lists and ## headings render). instinct is the "to …" one-liner (pass without the leading "to"); meaningless for a DISCOVERY. traits are memorable descriptors ("humorless", "Eeyore voice") — tags are mechanical descriptors (cunning, warrior); do not put traits in tags. For a DISCOVERY these are its REQUIREMENTS — an arcanum\'s list of what must happen before its mysteries unlock, ticked as play satisfies them (new traits start unticked). traits replaces the full trait list. Refuses a name that already exists — update the existing sheet instead.',
+        'Add a character to the wiki: an NPC the party just met, a group, a threat, or a discovery — something there is to find. type defaults to "PNJ" (NPC). type: "PJ" (player character), "PNJ" (NPC), "GROUPE" (a group or faction), "MENACE" (a threat), "DISCOVERY" (something to find). The codes are French because the stored column values are; do not translate them. role: read according to `type` — the playbook for a PJ, the occupation for a PNJ, the role in the group for a GROUPE, and for a DISCOVERY the KIND, one of: clue, revelation, site, encounter, opportunity, artifact, arcanum (lowercase, English). A MENACE has none. Leaving role empty still stores the discovery unfiled, but the sheet\'s kind picker no longer offers that state: opening such a row seeds it with the first kind and the next save files it there. Name the kind rather than relying on that. A `revelation` is the thing a clue points at — file the conclusion the party can reach as its own entry, then point clues at it with create_relation\'s `leads-to`. location accepts a name or id. notes/gm_notes are Markdown (blank lines separate paragraphs; **bold**, lists and ## headings render). instinct is the "to …" one-liner (pass without the leading "to"); meaningless for a DISCOVERY. traits are memorable descriptors ("humorless", "Eeyore voice") — tags are mechanical descriptors (cunning, warrior); do not put traits in tags. For a DISCOVERY these are its REQUIREMENTS — an arcanum\'s list of what must happen before its mysteries unlock, ticked as play satisfies them (new traits start unticked). traits replaces the full trait list. Refuses a name that already exists — update the existing sheet instead.',
       inputSchema: z.object({
         name: z.string().min(1),
         type: z.enum(CHARACTER_TYPE_IDS).optional(),
@@ -245,7 +293,7 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
     'update_character',
     {
       description:
-        'Amend one character sheet after a session. Accepts a name or id. notes_append/gm_notes_append add paragraphs under the existing text (preferred); notes/gm_notes replace it. tags replaces the whole list. location accepts a name or id. instinct is the "to …" one-liner (pass without the leading "to"); meaningless for a DISCOVERY. role: read according to the character\'s type — the playbook for a PJ, the occupation for a PNJ, the role in the group for a GROUPE, and for a DISCOVERY the KIND, one of: clue, revelation, site, encounter, opportunity, artifact, arcanum (lowercase, English). A MENACE has none. Leaving role empty still stores the discovery unfiled, but the sheet\'s kind picker no longer offers that state: opening such a row seeds it with the first kind and the next save files it there. Name the kind rather than relying on that. A `revelation` is the thing a clue points at — file the conclusion the party can reach as its own entry, then point clues at it with create_relation\'s `leads-to`. traits are memorable descriptors ("humorless", "Eeyore voice") — tags are mechanical descriptors (cunning, warrior); do not put traits in tags. For a DISCOVERY these are its REQUIREMENTS — an arcanum\'s list of what must happen before its mysteries unlock, ticked as play satisfies them. Resubmitting a label keeps its tick; a label you omit is removed; a brand-new label starts unticked. traits replaces the full trait list — fetch the character\'s current traits first if you want to append rather than replace. Pass traits: [] to clear all traits.',
+        'Amend one character sheet after a session. Accepts a name or id. notes_append/gm_notes_append add paragraphs under the existing text (preferred); notes/gm_notes replace it, and the response carries the replaced text. tags replaces the whole list. location accepts a name or id. instinct is the "to …" one-liner (pass without the leading "to"); meaningless for a DISCOVERY. role: read according to the character\'s type — the playbook for a PJ, the occupation for a PNJ, the role in the group for a GROUPE, and for a DISCOVERY the KIND, one of: clue, revelation, site, encounter, opportunity, artifact, arcanum (lowercase, English). A MENACE has none. Leaving role empty still stores the discovery unfiled, but the sheet\'s kind picker no longer offers that state: opening such a row seeds it with the first kind and the next save files it there. Name the kind rather than relying on that. A `revelation` is the thing a clue points at — file the conclusion the party can reach as its own entry, then point clues at it with create_relation\'s `leads-to`. traits are memorable descriptors ("humorless", "Eeyore voice") — tags are mechanical descriptors (cunning, warrior); do not put traits in tags. For a DISCOVERY these are its REQUIREMENTS — an arcanum\'s list of what must happen before its mysteries unlock, ticked as play satisfies them. Resubmitting a label keeps its tick; a label you omit is removed; a brand-new label starts unticked. traits replaces the full trait list — fetch the character\'s current traits first if you want to append rather than replace. Pass traits: [] to clear all traits.',
       inputSchema: z.object({
         name_or_id: z.string().min(1),
         role: z.string().optional(),
@@ -296,7 +344,9 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
 
       await writeRpc(env, token, 'update_character', { p_id: resolved.id, p_data: patch });
       return text(
-        `Updated ${current.name}: ${Object.keys(patch).join(', ')}. ${UNDO_NOTE}`,
+        `Updated ${current.name}: ${Object.keys(patch).join(', ')}. ${UNDO_NOTE}` +
+          (notes != null ? priorText('notes', current.notes) : '') +
+          (gm_notes != null ? priorText('gm_notes', current.gm_notes) : ''),
       );
     }),
   );
@@ -345,10 +395,48 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
   );
 
   server.registerTool(
+    'create_location',
+    {
+      description:
+        'Add a location to the wiki: a place the party has heard of, reached, or that a threat calls home. description is the short banner line; tags are free labels. notes/gm_notes are Markdown (blank lines separate paragraphs; **bold**, lists and ## headings render). Creates a plain location — steading numbers belong to steadings made in the app. Refuses a name that already exists — use update_location instead.',
+      inputSchema: z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        gm_only: z.boolean().optional(),
+        gm_notes: z.string().optional(),
+      }),
+    },
+    guardWrite(async ({ name, description, tags, notes, gm_only, gm_notes }) => {
+      const { graph } = await freshGraph(env, token);
+      const clash = graph.locations.find((l) => l.name.toLowerCase() === name.trim().toLowerCase());
+      if (clash) {
+        return fail(
+          `"${clash.name}" already exists (id: ${clash.id}). Use update_location, or pick a distinct name.`,
+        );
+      }
+      // Même règle que create_character : les clés MJ ne voyagent que si
+      // fournies, leur seule présence fait refuser l'écriture d'un joueur.
+      const created = await writeRpc<{ id: string }>(env, token, 'create_location', {
+        p_data: {
+          name: name.trim(),
+          description: description ?? '',
+          notes: markdownToHtml(notes),
+          tags: tags ?? [],
+          ...(gm_only != null && { gm_only }),
+          ...(gm_notes != null && { gm_notes: markdownToHtml(gm_notes) }),
+        },
+      });
+      return text(`Created location "${name.trim()}" (id: ${created.id}). ${UNDO_NOTE}`);
+    }),
+  );
+
+  server.registerTool(
     'update_location',
     {
       description:
-        'Amend one location sheet. Accepts a name or id. notes_append/gm_notes_append add paragraphs under the existing text (preferred); notes/gm_notes replace it. description is the short banner line; tags replaces the whole list. Steading numbers have their own tool: update_steading.',
+        'Amend one location sheet. Accepts a name or id. notes_append/gm_notes_append add paragraphs under the existing text (preferred); notes/gm_notes replace it, and the response carries the replaced text. description is the short banner line; tags replaces the whole list. Steading numbers have their own tool: update_steading.',
       inputSchema: z.object({
         name_or_id: z.string().min(1),
         description: z.string().optional(),
@@ -377,7 +465,11 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
       if (!Object.keys(patch).length) return fail('Nothing to change — pass at least one field.');
 
       await writeRpc(env, token, 'update_location', { p_id: resolved.id, p_data: patch });
-      return text(`Updated ${current.name}: ${Object.keys(patch).join(', ')}. ${UNDO_NOTE}`);
+      return text(
+        `Updated ${current.name}: ${Object.keys(patch).join(', ')}. ${UNDO_NOTE}` +
+          (notes != null ? priorText('notes', current.notes) : '') +
+          (gm_notes != null ? priorText('gm_notes', current.gm_notes) : ''),
+      );
     }),
   );
 
@@ -475,6 +567,69 @@ export function registerWriteTools(server: McpServer, env: Env, token: string): 
       return text(
         `${row.name}: "${ticked}" marked ${done ? 'done' : 'not done'} ` +
           `(${doneCount} of ${sheet.portents.length} portents done). ${UNDO_NOTE}`,
+      );
+    }),
+  );
+
+  server.registerTool(
+    'set_threat_sheet',
+    {
+      description:
+        'Author a threat\'s countdown: its grim portents, impending doom, stakes and GM moves. Only the fields passed change; each one passed replaces that whole part of the sheet, and the response carries what it replaced. portents and stakes are lists of {text, done?}: an item whose text matches one already on the sheet keeps its tick unless done is given, so resubmitting the list never wipes ticks; an item you leave out is removed. Order portents from first to last. impending_doom is plain text; it keeps its tick when the text is unchanged. gm_moves replaces the list of move names. A threat with no sheet yet (a MENACE) gets one. Use tick_portent to mark progress during play, and update_character for instinct, notes and the rest of the character.',
+      inputSchema: z.object({
+        threat: z.string().min(1),
+        portents: z.array(z.object({ text: z.string(), done: z.boolean().optional() })).optional(),
+        impending_doom: z.string().optional(),
+        stakes: z.array(z.object({ text: z.string(), done: z.boolean().optional() })).optional(),
+        gm_moves: z.array(z.string()).optional(),
+      }),
+    },
+    guardWrite(async ({ threat, portents, impending_doom, stakes, gm_moves }) => {
+      const { raw, graph } = await freshGraph(env, token);
+      const resolved = resolveOrFail(graph, threat, 'characters');
+      if ('error' in resolved) return resolved.error;
+      const row = raw.characters.find((c) => c.id === resolved.id)!;
+      if (!row.threat && row.type !== 'MENACE') {
+        return fail(`${row.name} is a ${row.type}, not a threat (MENACE) — it has no countdown.`);
+      }
+      if (portents == null && impending_doom == null && stakes == null && gm_moves == null) {
+        return fail('Nothing to change — pass at least one of portents, impending_doom, stakes, gm_moves.');
+      }
+
+      // Pas de fiche : normalizeThreatSheet(null) rend la fiche vierge.
+      const prior: ThreatSheet = normalizeThreatSheet(row.threat);
+      const sheet: ThreatSheet = normalizeThreatSheet(row.threat);
+      const replaced: string[] = [];
+      if (portents) {
+        sheet.portents = mergeTicks(portents, prior.portents);
+        if (prior.portents.length) replaced.push(`Prior portents:\n${tickList(prior.portents, true)}`);
+      }
+      if (impending_doom != null) {
+        const was = htmlToText(prior.impendingDoom.text).trim();
+        const now = impending_doom.trim();
+        // La fatalité est stockée en HTML (cf. normalizeThreatSheet).
+        sheet.impendingDoom = { text: textToHtml(now), done: was === now && prior.impendingDoom.done };
+        if (was) replaced.push(`Prior impending doom: ${was}${prior.impendingDoom.done ? ' (done)' : ''}`);
+      }
+      if (stakes) {
+        sheet.stakes = mergeTicks(stakes, prior.stakes);
+        if (prior.stakes.length) replaced.push(`Prior stakes:\n${tickList(prior.stakes, false)}`);
+      }
+      if (gm_moves) {
+        sheet.gmMoves = gm_moves.map((m) => m.trim()).filter(Boolean);
+        if (prior.gmMoves.length) replaced.push(`Prior GM moves:\n${prior.gmMoves.map((m) => `- ${m}`).join('\n')}`);
+      }
+
+      await writeRpc(env, token, 'update_character', {
+        p_id: resolved.id,
+        p_data: { threat: sheet },
+      });
+      const doom = htmlToText(sheet.impendingDoom.text).trim();
+      return text(
+        `${row.name}: threat sheet saved.\nPortents:\n${tickList(sheet.portents, true)}\n` +
+          `Impending doom: ${doom || '(none)'}\n` +
+          `${sheet.stakes.length} stake(s), ${sheet.gmMoves.length} GM move(s). ${UNDO_NOTE}` +
+          (replaced.length ? `\n\n${replaced.join('\n\n')}` : ''),
       );
     }),
   );
