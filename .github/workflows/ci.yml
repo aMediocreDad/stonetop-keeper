@@ -38,7 +38,7 @@ jobs:
       # base tip, so HEAD^1..HEAD is exactly the PR's change. Depth 2 is all
       # that needs. A shallow `origin/<base>...HEAD` has no merge base and
       # fails, which once made this job report "no schema change" on every PR.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
       - id: filter
@@ -67,7 +67,7 @@ jobs:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -86,7 +86,7 @@ jobs:
       run:
         working-directory: mcp
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -102,7 +102,7 @@ jobs:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -130,7 +130,7 @@ jobs:
     if: needs.changes.outputs.schema == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # Pinned: `latest` asks the GitHub API which release that is, and a
       # rate-limited answer failed the gate with nothing wrong in the schema.
       - uses: supabase/setup-cli@v1

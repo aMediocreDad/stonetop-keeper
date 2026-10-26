@@ -35,10 +35,14 @@ still can.
 The general rule worth adopting: **every field the read surface renders should have
 a writer.** It catches this and most of what follows.
 
-- [ ] Add portent/doom/stakes/GM-move writers to `mcp/src/writes.ts` + `tools.ts`
-- [ ] Decide the shape: `set_threat_sheet` (whole-sheet replace) vs `add_portent` /
+- [x] Add portent/doom/stakes/GM-move writers to `mcp/src/writes.ts` + `tools.ts`
+- [x] Decide the shape: `set_threat_sheet` (whole-sheet replace) vs `add_portent` /
       `update_portent` (incremental). Incremental composes better with `tick_portent`
       and matches the amend-only posture
+      — chose `set_threat_sheet`, amend-shaped: only the parts passed change, a
+      resubmitted portent or stake keeps its tick, and the response returns what
+      it replaced. One countdown is one write and one Ledger row, not one per
+      portent (see item 8).
 
 ### 2. Threats have a lifecycle the schema doesn't model
 
@@ -62,7 +66,7 @@ Only `update_location` exists. A place central to the campaign simply wasn't an
 entity, and there was no way to make one — so two new threats couldn't be given a
 `location` or pinned to a map at all.
 
-- [ ] `create_location` in `mcp/src/writes.ts`, mirroring `create_character`'s
+- [x] `create_location` in `mcp/src/writes.ts`, mirroring `create_character`'s
       name-collision behaviour
 
 ---
@@ -89,8 +93,10 @@ entities whose links most need traversing, and they're the ones the web can't ho
 Every cross-reference ended up as prose in a `Related:` line — invisible to the
 relation graph.
 
-- [ ] Add structural relation types (`causes`, `caused_by`, `manifestation_of`,
-      `related_to`) or allow a free-text label alongside the enum
+- [x] Structural relation types for discoveries (`leads-to`, `found-with`,
+      `concerns`, `held-by`, `encounter-with`)
+- [ ] Threat-to-threat labels (`causes`, `caused_by`, `manifestation_of`,
+      `related_to`) or a free-text label alongside the enum — needs app work
 
 ### 6. Replace-without-read is unguarded
 
@@ -102,7 +108,7 @@ context from an earlier read.
 Claude Code's own `Edit` refuses to touch a file that hasn't been read in-session.
 This has the same hazard with none of the guard.
 
-- [ ] Return the **prior value** in the write response so it's always recoverable
+- [x] Return the **prior value** in the write response so it's always recoverable
 - [ ] Consider requiring a prior fetch (or an `expected_version`) for whole-field
       replaces; `*_append` can stay unguarded
 
@@ -115,7 +121,7 @@ This has the same hazard with none of the guard.
 `PJ / PNJ / GROUPE / MENACE` and `ami / famille / …`. Guessable, but `create_character`'s
 description says *"type defaults to NPC"* while the actual value is `PNJ`.
 
-- [ ] Accept English aliases, or at minimum spell the mapping out in the docstrings
+- [x] Accept English aliases, or at minimum spell the mapping out in the docstrings
 
 ### 8. No write grouping for undo
 
@@ -131,7 +137,8 @@ Reasonable for a log, but the journal reads as a working document. An earlier en
 describing a now-retired situation can never be corrected — the new entry just sits
 below it, and both are equally authoritative to a reader.
 
-- [ ] Return an entry id; allow amend or supersede (not delete)
+- [ ] Return an entry id; allow amend or supersede (not delete) — the notes are
+      one HTML string with no entries to address, so this needs a schema change
 
 ### 10. `search_campaign` doesn't cover the GM journal
 
@@ -139,7 +146,7 @@ Its `types` are `pc, npc, group, threat, location, chronicle`. The free-form jou
 scratchpad isn't searchable — its contents were only discoverable because
 `get_campaign_brief` bundles them.
 
-- [ ] Add `journal` (and `wonder`) to the search types
+- [x] Add `journal` (and `wonder`) to the search types
 
 ---
 

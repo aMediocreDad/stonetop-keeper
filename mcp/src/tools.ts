@@ -65,7 +65,7 @@ export function buildServer(env: Env, token: string): McpServer {
     'search_campaign',
     {
       description:
-        'Free-text search across character names, roles, notes (GM notes included), locations and chronicle entries. Returns kind, name, id and a snippet. Use this to find an entity before calling get_entity; a chronicle hit is drilled into with get_chronicle, not get_entity.',
+        'Free-text search across character names, roles, notes (GM notes included), locations and chronicle entries, plus — for a GM token — the GM journal notes and the "I wonder…" questions. Returns kind, name, id and a snippet. Use this to find an entity before calling get_entity; a chronicle hit is drilled into with get_chronicle, not get_entity; a journal hit is read in full through get_campaign_brief\'s journal section; a wonder hit\'s id carries the index resolve_wonder accepts.',
       inputSchema: z.object({
         query: z.string().min(1),
         types: z.array(z.enum(KINDS)).optional(),
