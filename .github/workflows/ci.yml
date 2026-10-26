@@ -133,7 +133,7 @@ jobs:
       - uses: actions/checkout@v7
       # Pinned: `latest` asks the GitHub API which release that is, and a
       # rate-limited answer failed the gate with nothing wrong in the schema.
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 2.121.0
       # Full stack rather than a curated `-x` exclude list: a wrong service
