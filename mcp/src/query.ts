@@ -1,6 +1,16 @@
 import type { CampaignGraph } from '../../app/src/lib/shared';
 
-export const KINDS = ['pc', 'npc', 'group', 'threat', 'discovery', 'location', 'chronicle'] as const;
+export const KINDS = [
+  'pc',
+  'npc',
+  'group',
+  'threat',
+  'discovery',
+  'location',
+  'chronicle',
+  'journal',
+  'wonder',
+] as const;
 export type SearchKind = (typeof KINDS)[number];
 
 export interface Hit {
@@ -82,6 +92,29 @@ export function searchGraph(graph: CampaignGraph, query: string, kinds?: SearchK
         });
       }
     }
+  }
+  // `graph.journal` is null for a token without GM access, so neither kind
+  // can surface GM material to a player.
+  if (want('journal') && graph.journal) {
+    const haystack = stripMarks(graph.journal.notes);
+    if (haystack.toLowerCase().includes(needle)) {
+      hits.push({ kind: 'journal', name: 'GM journal notes', id: 'journal', snippet: snippetOf(haystack) });
+    }
+  }
+  if (want('wonder') && graph.journal) {
+    graph.journal.wonders.forEach((w, i) => {
+      const haystack = stripMarks([w.text, w.resolution].join('\n'));
+      if (haystack.toLowerCase().includes(needle)) {
+        // Wonders carry no id on the graph; the 1-based index is what
+        // resolve_wonder accepts.
+        hits.push({
+          kind: 'wonder',
+          name: `${w.text}${w.resolved ? ' (answered)' : ''}`,
+          id: `wonder ${i + 1}`,
+          snippet: snippetOf(haystack),
+        });
+      }
+    });
   }
   return hits;
 }
