@@ -33,7 +33,20 @@ From `app/`:
 - `npm run dev` — Vite dev server
 - `npm run build` — `tsc -b` + vite build
 - `npm run test` / `npm run test:watch` — Vitest
-- `npm run test:e2e` — Playwright
+- `npm run test:e2e` — Playwright. `playwright.config.ts` pins `channel: 'chrome'`,
+  the real Chrome app, which cannot start inside the Claude Code sandbox
+  ("ProcessSingleton"); every unsandboxed retry prompts me and opens Chrome
+  windows. Run e2e at most once per layer, as one bare unsandboxed
+  `npm run test:e2e`, after unit tests, lint and build pass.
+- Screenshots and visual iteration: run Playwright in Linux Chromium under podman
+  (sandbox-excluded, opens no windows). Not for the TipTap sheets: headless
+  Chromium crashes on them (see Gotchas). Add an untracked
+  `app/playwright.linux.config.ts` that spreads the base config with
+  `channel: undefined`, then:
+  `podman run --rm --ipc=host -v <checkout>:/repo -v stonetop-e2e-npm:/root/.npm -w /repo/app mcr.microsoft.com/playwright:v1.64.1-noble npx playwright test -c playwright.linux.config.ts`
+  Match the image tag to the installed `@playwright/test` version.
+- A prototype subagent gets a stop rule: after 3 failed attempts on one
+  sub-problem, stop and report.
 - `npm run lint` — ESLint
 - `npm run preview` — preview built app
 
@@ -43,17 +56,24 @@ From the repo root: `npm run deploy`, `npm run deploy:dry`.
 
 ## Deployment
 
-- `npm run deploy` from the repo root builds `app/` (Supabase creds baked from
-  `app/.env.local`), then `wrangler deploy` uploads `app/dist` as assets and
-  the MCP Worker as `main`. `run_worker_first` scopes the Worker to `/mcp`;
-  every other path is served asset-first with SPA fallback.
-- `npm run deploy:dry` validates without deploying. First-time setup:
-  `npx wrangler login`.
+- **Merging to `main` is the deploy.** Cloudflare Workers Builds builds and
+  deploys the one Worker (`stonetop-keeper`), and the Supabase GitHub
+  integration applies new `supabase/migrations/` from the same merge. CI
+  (`.github/workflows/ci.yml`) is only the proof gate: no secrets, no deploy.
+- The SPA and the MCP server are one Worker: `wrangler.jsonc` uploads
+  `app/dist` as assets and `mcp/src/index.ts` as `main`. `run_worker_first`
+  scopes the Worker to `/mcp` and `/mcp/*`; every other path is served
+  asset-first with SPA fallback. The Worker's only secrets are
+  `SUPABASE_URL` and `SUPABASE_ANON_KEY` (`wrangler secret`).
+- `npm run deploy` / `npm run deploy:dry` from the repo root are the manual
+  fallback (build `app/` with creds from `app/.env.local`, then
+  `wrangler deploy`). First-time setup: `npx wrangler login`.
 - **Deploy order matters.** `mcp/src/fetch.ts`'s `readAll` issues every read as
   one `Promise.all` and throws on any error, and every MCP tool routes through
   `loadCampaign`. A Worker deployed against a database missing a function the
-  read layer expects breaks *every* MCP tool call, not just the new one. Apply
-  the migration first, then deploy.
+  read layer expects breaks *every* MCP tool call, not just the new one. One
+  merge starts the Worker build and the migration at once, and the Worker can
+  win. Land a migration in its own PR before the PR whose code calls it.
 - Renaming the Worker in `wrangler.jsonc` creates a *new* Worker and orphans the
   custom-domain binding. The DNS record and certificate for
   `stonetop.amediocre.dad` belong to the existing one.
@@ -67,8 +87,8 @@ From the repo root: `npm run deploy`, `npm run deploy:dry`.
   from `supabase/migrations/` on every run, which keeps the schema file
   continuously exercised instead of merely trusted.
 - Schema changes go in a **new** timestamped migration under
-  `supabase/migrations/`. Apply locally first, confirm it runs clean, then apply
-  to production.
+  `supabase/migrations/`. Apply locally first and confirm it runs clean; the
+  merge to `main` applies it to production (see Deployment).
 - Never hand-transcribe a PL/pgSQL body between environments, and remember that
   a clean apply proves nothing about a function body — assert behaviour.
 - `pg_dump` emits ACL *state*, not the operations that produced it. Any
