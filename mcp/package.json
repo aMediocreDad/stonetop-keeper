@@ -9,13 +9,13 @@
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/typescript/bin/tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/server": "2.4.0",
     "@supabase/supabase-js": "2.118.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20261019.1",
-    "@types/node": "26.6.5",
+    "@cloudflare/workers-types": "5.20261101.1",
+    "@types/node": "26.6.6",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
   }
